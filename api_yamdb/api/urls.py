@@ -10,5 +10,10 @@ v1_router.register('users/me', UserProfileViewSet, basename='user-profile')
 v1_router.register(r'users', UserViewSet, basename='user')
 
 urlpatterns = [
+    path('v1/users/<str:username>/', UserViewSet.as_view({
+        'get': 'retrieve',
+        'patch': 'update',
+        'delete': 'destroy'
+    }), name='user-detail'),
     path('v1/', include(v1_router.urls)),
 ]
