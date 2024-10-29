@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Avg
 
 User = get_user_model()
 
@@ -8,7 +9,11 @@ MAX_LENGTH_TEXT = 50
 
 
 class Title(models.Model):
-    pass
+
+    @property
+    def rating(self):
+        '''Возвращает среднюю оценку произведения.'''
+        return self.reviews.aggregate(Avg('score'))['score__avg']
 
 
 class Review(models.Model):
