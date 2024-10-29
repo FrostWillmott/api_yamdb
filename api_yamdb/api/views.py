@@ -1,8 +1,8 @@
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import ModelViewSet
+from reviews.models import Review, Title
 
-from .models import Review, Title
 from .serializers import ReviewSerializer
 
 
