@@ -12,7 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import User
 
 from api.permissions import IsAdmin
-from api.serializers import SignupSerializer, TokenSerializer, UserSerializer
+from api.serializers import SignupSerializer, TokenSerializer, UserSerializer, UserProfileSerializer
 
 
 class SignupViewSet(viewsets.ModelViewSet):
@@ -68,7 +68,7 @@ class TokenViewSet(viewsets.ViewSet):
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_object(self):
