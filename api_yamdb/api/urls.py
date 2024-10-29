@@ -14,6 +14,6 @@ urlpatterns = [
     #     'patch': 'update',
     #     'delete': 'destroy'
     # }), name='user-detail'),
-    path('v1/users/me/', UserProfileViewSet.as_view({'get': 'retrieve'}), name='user-profile'),
+    path('v1/users/me/', UserProfileViewSet.as_view({'get': 'retrieve', 'patch': 'update'}), name='user-profile'),
     path('v1/', include(v1_router.urls)),
 ]
