@@ -13,6 +13,7 @@ v1_router = DefaultRouter()
 v1_router.register("auth/signup", SignupViewSet, basename="signup")
 v1_router.register("auth/token", TokenViewSet, basename="token")
 v1_router.register(r"users", UserViewSet, basename="user")
+v1_router.register(r"users/me", UserProfileViewSet, basename="user-profile")
 
 
 v1_router.register(
