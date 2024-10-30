@@ -9,7 +9,9 @@ class User(AbstractUser):
         ("moderator", "Moderator"),
         ("admin", "Admin"),
     ]
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="user")
+    role = models.CharField(
+        max_length=10, choices=ROLE_CHOICES, default="user"
+    )
     confirmation_code = models.CharField(max_length=6, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
 
