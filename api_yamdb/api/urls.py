@@ -1,7 +1,6 @@
-
-from api.views import CommentViewSet, ReviewViewSet
-
 from api.views import (
+    CommentViewSet,
+    ReviewViewSet,
     SignupViewSet,
     TokenViewSet,
     UserProfileViewSet,
@@ -17,14 +16,14 @@ v1_router.register(r"users", UserViewSet, basename="user")
 
 
 v1_router.register(
-    r'titles/(?P<title_id>\d+)/reviews',
+    r"titles/(?P<title_id>\d+)/reviews",
     ReviewViewSet,
-    basename='review',
+    basename="review",
 )
 v1_router.register(
-    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+    r"titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments",
     CommentViewSet,
-    basename='comment',
+    basename="comment",
 )
 
 urlpatterns = [
@@ -34,12 +33,4 @@ urlpatterns = [
         name="user-profile",
     ),
     path("v1/", include(v1_router.urls)),
-from django.urls import include, path
-from rest_framework import routers
-
-v1_router = routers.DefaultRouter()
-
-
-urlpatterns = [
-    path('v1/', include(v1_router.urls)),
 ]

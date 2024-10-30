@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from reviews.models import User
+from reviews.models import Comment, Review, User
 
 
 class SignupSerializer(serializers.ModelSerializer):
@@ -58,34 +58,31 @@ class UserSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         read_only_fields = ["role"]
-from reviews.models import Comment, Review
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        slug_field='username',
+        slug_field="username",
         read_only=True,
     )
     pub_date = serializers.DateTimeField(
-        read_only=True,
-        format="%Y-%m-%dT%H:%M:%SZ"
+        read_only=True, format="%Y-%m-%dT%H:%M:%SZ"
     )
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        fields = ("id", "text", "author", "score", "pub_date")
 
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        slug_field='username',
+        slug_field="username",
         read_only=True,
     )
     pub_date = serializers.DateTimeField(
-        read_only=True,
-        format="%Y-%m-%dT%H:%M:%SZ"
+        read_only=True, format="%Y-%m-%dT%H:%M:%SZ"
     )
 
     class Meta:
         model = Comment
-        fields = ('id', 'text', 'author', 'pub_date')
+        fields = ("id", "text", "author", "pub_date")

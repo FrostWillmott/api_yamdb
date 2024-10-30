@@ -12,9 +12,15 @@ from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.filters import SearchFilter
+from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import User
+from reviews.models import Comment, Review, Title, User
+
+from .serializers import CommentSerializer, ReviewSerializer
 
 
 class SignupViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -87,22 +93,6 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    # def get_object(self):
-    #     return self.request.user
-
-    # def update(self, request, *args, **kwargs):
-    #     partial = kwargs.pop("partial", True)
-    #     instance = self.get_object()
-    #     serializer = self.get_serializer(
-    #         instance, data=request.data, partial=partial
-    #     )
-    #     serializer.is_valid(raise_exception=True)
-    #     self.perform_update(serializer)
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
-
-    # def destroy(self, request, *args, **kwargs):
-    #     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -142,22 +132,15 @@ class UserViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
-from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.viewsets import ModelViewSet
-from reviews.models import Comment, Review, Title
-
-from .serializers import CommentSerializer, ReviewSerializer
 
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (IsAuthenticatedOrReadOnly,)  # TODO add permissions
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def _get_title(self):
-        return get_object_or_404(Title, id=self.kwargs['title_id'])
+        return get_object_or_404(Title, id=self.kwargs["title_id"])
 
     def get_queryset(self):
         title = self._get_title()
@@ -172,15 +155,16 @@ class ReviewViewSet(ModelViewSet):
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (IsAuthenticatedOrReadOnly,)  # TODO add permissions
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def _get_title(self):
-        return get_object_or_404(Title, id=self.kwargs['title_id'])
+        return get_object_or_404(Title, id=self.kwargs["title_id"])
 
     def _get_review(self):
         title = self._get_title()
         return get_object_or_404(
-            Review, id=self.kwargs['review_id'], title=title)
+            Review, id=self.kwargs["review_id"], title=title
+        )
 
     def get_queryset(self):
         review = self._get_review()
