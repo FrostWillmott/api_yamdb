@@ -20,7 +20,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(serializers.ModelSerializer):    
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.IntegerField(read_only=True)  # может поправить потом
     genre = GenreSerializer(
         read_only=True,
         many=True
@@ -34,7 +34,7 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для моделей произведений."""
-    rating = serializers.IntegerField(required=False)
+    rating = serializers.IntegerField(required=False) # может поправить потом
     genre = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Genre.objects.all(),
