@@ -1,8 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
-
-from reviews.models import Genre, Category, Title, Comment
+from reviews.models import Genre, Category, Title, Comment, Review
 
 User = get_user_model()
 
@@ -21,8 +19,22 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('name', 'slug')
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitleReadSerializer(serializers.ModelSerializer):    
+    rating = serializers.IntegerField(read_only=True)
+    genre = GenreSerializer(
+        read_only=True,
+        many=True
+    )
+    category = CategorySerializer(read_only=True)
+
+    class Meta:
+        model = Title
+        fields = '__all__'
+
+
+class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для моделей произведений."""
+    rating = serializers.IntegerField(required=False)
     genre = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Genre.objects.all(),
@@ -39,12 +51,31 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 
-class CommentsSerializer(serializers.ModelSerializer):
-    """Сериализатор для моделей комментариев."""
+class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        read_only=True, slug_field='username'
+        slug_field='username',
+        read_only=True,
+    )
+    pub_date = serializers.DateTimeField(
+        read_only=True,
+        format="%Y-%m-%dT%H:%M:%SZ"
     )
 
     class Meta:
-        fields = '__all__'
+        model = Review
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True,
+    )
+    pub_date = serializers.DateTimeField(
+        read_only=True,
+        format="%Y-%m-%dT%H:%M:%SZ"
+    )
+
+    class Meta:
         model = Comment
+        fields = ('id', 'text', 'author', 'pub_date')
