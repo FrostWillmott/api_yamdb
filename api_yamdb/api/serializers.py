@@ -1,26 +1,8 @@
-from django.core.validators import RegexValidator, EmailValidator
 from rest_framework import serializers
 from reviews.models import User
 
 
-
 class SignupSerializer(serializers.ModelSerializer):
-    # username = serializers.CharField(
-    #     validators=[
-    #         MinLengthValidator(3),
-    #         MaxLengthValidator(150),
-    #         RegexValidator(
-    #             regex=r'^[\w.@+-]+$',
-    #             message='Username must contain only letters, numbers, and @/./+/-/_ characters.'
-    #         )
-    #     ]
-    # )
-    # email = serializers.EmailField(
-    #     validators=[
-    #         MaxLengthValidator(254)
-    #     ]
-    # )
-
     class Meta:
         model = User
         fields = ["username", "email"]
@@ -37,4 +19,4 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["username", "email", "first_name", "last_name", "bio", "role"]
-
+        read_only_fields = ["role"]

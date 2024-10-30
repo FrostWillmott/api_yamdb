@@ -2,13 +2,13 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxLengthValidator, RegexValidator
 from django.db import models
 
+ROLE_CHOICES = [
+    ("user", "User"),
+    ("moderator", "Moderator"),
+    ("admin", "Admin"),
+]
 
 class User(AbstractUser):
-    ROLE_CHOICES = [
-        ("user", "User"),
-        ("moderator", "Moderator"),
-        ("admin", "Admin"),
-    ]
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="user")
     confirmation_code = models.CharField(max_length=6, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
