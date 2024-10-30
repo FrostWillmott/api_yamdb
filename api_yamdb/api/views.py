@@ -10,57 +10,47 @@ from api.serializers import (
 )
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import User
 
 
-class SignupViewSet(viewsets.ModelViewSet):
+class SignupViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data["username"]
-        email = serializer.validated_data["email"]
+        user = serializer.save()
 
-        if username.lower() == "me":
-            raise ValidationError(
-                {"username": 'Имя пользователя "me" запрещено.'}
-            )
-        if (
-            User.objects.filter(email=email)
-            .exclude(pk=self.request.user.pk)
-            .exists()
-        ):
-            return Response(
-                {"email": "Этот email уже зарегистрирован."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        user, created = User.objects.get_or_create(
-            username=username, email=email
-        )
-        confirmation_code = "".join(
-            random.choices(string.ascii_uppercase + string.digits, k=6)
-        )
+        confirmation_code = self._generate_confirmation_code()
         user.confirmation_code = confirmation_code
         user.save()
-        send_mail(
-            "Ваш код подтверждения",
-            f"Ваш код подтверждения: {confirmation_code}",
-            "from@example.com",
-            [user.email],
-            fail_silently=False,
-        )
+
+        self._send_confirmation_email(user, confirmation_code)
+
         return Response(
             {"email": user.email, "username": user.username},
             status=status.HTTP_200_OK,
+        )
+
+    def _generate_confirmation_code(self):
+        """Генерирует случайный код подтверждения."""
+        return "".join(
+            random.choices(string.ascii_uppercase + string.digits, k=6)
+        )
+
+    def _send_confirmation_email(self, user, confirmation_code):
+        """Отправляет код подтверждения на email пользователя."""
+        send_mail(
+            subject="Ваш код подтверждения",
+            message=f"Ваш код подтверждения: {confirmation_code}",
+            from_email="from@example.com",
+            recipient_list=[user.email],
+            fail_silently=False,
         )
 
 
@@ -97,21 +87,21 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_object(self):
-        return self.request.user
+    # def get_object(self):
+    #     return self.request.user
 
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop("partial", True)
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=partial
-        )
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    # def update(self, request, *args, **kwargs):
+    #     partial = kwargs.pop("partial", True)
+    #     instance = self.get_object()
+    #     serializer = self.get_serializer(
+    #         instance, data=request.data, partial=partial
+    #     )
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_update(serializer)
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def destroy(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    # def destroy(self, request, *args, **kwargs):
+    #     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class UserViewSet(viewsets.ModelViewSet):

@@ -3,6 +3,11 @@ from django.core.validators import MaxLengthValidator, RegexValidator
 from django.db import models
 
 
+class NotMeValidator(RegexValidator):
+    def __init__(self, *args, **kwargs):
+        super().__init__(r"^(?!me$).*", *args, **kwargs)
+
+
 class User(AbstractUser):
     ROLE_CHOICES = [
         ("user", "User"),
@@ -17,7 +22,8 @@ class User(AbstractUser):
 
     email = models.EmailField(
         max_length=254,
-        validators=[MaxLengthValidator(254)],
+        validators=[MaxLengthValidator(254), NotMeValidator()],
+        unique=True,
     )
     username = models.CharField(
         max_length=150,
