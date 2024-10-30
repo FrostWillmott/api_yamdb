@@ -27,25 +27,20 @@ class SignupViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data["username"]
         email = serializer.validated_data["email"]
-
         if username.lower() == "me":
             raise ValidationError(
                 {"username": 'Имя пользователя "me" запрещено.'})
-        if User.objects.filter(email=email).exists() and not User.objects.filter(username=username, email=email).exists():
-            return Response({"detail": "Пользователь с таким e-mail уже существует."},
-                            status=status.HTTP_400_BAD_REQUEST)
-        else:
-            user, created = User.objects.get_or_create(username=username, email=email)
-            confirmation_code = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
-            user.confirmation_code = confirmation_code
-            user.save()
-            send_mail(
-                "Ваш код подтверждения",
-                f"Ваш код подтверждения: {confirmation_code}",
-                "from@example.com",
-                [user.email],
-                fail_silently=False,
-            )
+        user, created = User.objects.get_or_create(username=username, email=email)
+        confirmation_code = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        user.confirmation_code = confirmation_code
+        user.save()
+        send_mail(
+            "Ваш код подтверждения",
+            f"Ваш код подтверждения: {confirmation_code}",
+            "from@example.com",
+            [user.email],
+            fail_silently=False,
+        )
         return Response({"email": user.email, "username": user.username},
                         status=status.HTTP_200_OK)
 class TokenViewSet(viewsets.ViewSet):
