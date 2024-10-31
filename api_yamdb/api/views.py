@@ -25,15 +25,21 @@ class SignupViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
         username = serializer.validated_data["username"]
         email = serializer.validated_data["email"]
-        if username.lower() == "me":
-            raise ValidationError(
-                {"username": 'Имя пользователя "me" запрещено.'})
+        # FIX. Валидацию в сералайзер.
+        # if username.lower() == "me":
+        #     raise ValidationError(
+        #         {"username": 'Имя пользователя "me" запрещено.'})
         user, created = User.objects.get_or_create(username=username, email=email)
-        confirmation_code = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        user.confirmation_code = confirmation_code
-        user.save()
+
+        # FIX. Логику для confirmation_code нужно рефакторить.
+        # См. сообщение в канале.
+        # confirmation_code = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        # user.confirmation_code = confirmation_code
+        # user.save()
+
         send_mail(
             "Ваш код подтверждения",
             f"Ваш код подтверждения: {confirmation_code}",
@@ -43,6 +49,7 @@ class SignupViewSet(viewsets.ModelViewSet):
         )
         return Response({"email": user.email, "username": user.username},
                         status=status.HTTP_200_OK)
+
 class TokenViewSet(viewsets.ViewSet):
     def create(self, request):
         serializer = TokenSerializer(data=request.data)
