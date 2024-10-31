@@ -4,7 +4,8 @@ import string
 from rest_framework.exceptions import ValidationError
 
 from api.permissions import IsAdmin, IsAdminOrReadOnly, \
-    IsAdminOrModeratorOrAuthorOrReadOnly, IsAuthenticatedOrReadOnly
+    IsAdminOrModeratorOrAuthorOrReadOnly, IsAuthenticatedOrReadOnly, \
+    IsUserOrReadOnly
 from api.serializers import (
     SignupSerializer,
     TokenSerializer,
@@ -75,6 +76,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
 class SignupViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
+    permission_classes = (IsUserOrReadOnly,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
