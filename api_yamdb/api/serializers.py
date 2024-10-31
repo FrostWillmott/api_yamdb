@@ -22,6 +22,8 @@ class SignupSerializer(serializers.ModelSerializer):
             confirmation_code = "".join(
                 random.choices(string.ascii_uppercase + string.digits, k=6))
             attrs["confirmation_code"] = confirmation_code
+            user = User(**attrs)
+            user.save()
             send_mail(
                 "Ваш код подтверждения",
                 f"Ваш код подтверждения: {confirmation_code}",
