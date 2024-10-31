@@ -4,7 +4,8 @@ import string
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework.permissions import AllowAny
 
-from api.permissions import IsAdmin, IsAdminOrReadOnly, IsAdminOrModeratorOrAuthorOrReadOnly
+from api.permissions import IsAdmin, IsAdminOrReadOnly, \
+    IsAdminOrModeratorOrAuthorOrReadOnly, IsUser
 from api.serializers import (
     SignupSerializer,
     TokenSerializer,
@@ -62,7 +63,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
 class SignupViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
-    permission_classes = [AllowAny]
+    permission_classes = (AllowAny,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
