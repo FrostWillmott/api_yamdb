@@ -4,7 +4,8 @@ import string
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework.permissions import AllowAny
 
-from api.permissions import IsAdmin, IsAdminOrReadOnly, IsAdminOrModeratorOrAuthorOrReadOnly
+from api.permissions import IsAdmin, IsAdminOrReadOnly, \
+    IsAdminOrModeratorOrAuthorOrReadOnly, IsUser
 from api.serializers import (
     SignupSerializer,
     TokenSerializer,
@@ -62,7 +63,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
 class SignupViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
-    permission_classes = [AllowAny]
+    permission_classes = (IsUser,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -191,7 +192,7 @@ class ReviewViewSet(ModelViewSet):
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (IsAdminOrModeratorOrAuthorOrReadOnly)
+    permission_classes = (IsAdminOrModeratorOrAuthorOrReadOnly,)
 
     def _get_title(self):
         return get_object_or_404(Title, id=self.kwargs["title_id"])
