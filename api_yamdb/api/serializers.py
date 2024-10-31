@@ -21,7 +21,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
-    # rating = serializers.FloatField(read_only=True)  # может поправить потом
     genre = GenreSerializer(
         read_only=True,
         many=True
@@ -35,7 +34,6 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для моделей произведений."""
-    # rating = serializers.FloatField(required=False)  # может поправить потом
     genre = serializers.SlugRelatedField(
         slug_field='slug',
         many=True,
@@ -49,17 +47,6 @@ class TitleWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = ('id', 'name', 'year', 'genre', 'category', 'description')
-
-
-# class ReviewSerializer(serializers.ModelSerializer):
-#     author = serializers.SlugRelatedField(
-#         slug_field='username',
-#         read_only=True,
-#     )
-#     pub_date = serializers.DateTimeField(
-#         read_only=True,
-#         format="%Y-%m-%dT%H:%M:%SZ"
-#     )
 
 class SignupSerializer(serializers.ModelSerializer):
 
