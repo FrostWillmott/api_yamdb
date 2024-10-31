@@ -1,27 +1,61 @@
 import random
 import string
 
-from api.permissions import IsAdmin
+from api.permissions import IsAdmin, IsAuthenticatedOrReadOnly
 from api.serializers import (
     SignupSerializer,
     TokenSerializer,
     UserProfileSerializer,
     UserSerializer,
+    CategorySerializer,
+    GenreSerializer,
+    TitleReadSerializer,
+    TitleWriteSerializer,
+    CommentSerializer,
+    ReviewSerializer
 )
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Comment, Review, Title, User
+from reviews.models import Comment, Review, Title, User, Category, Genre, 
 
-from .serializers import CommentSerializer, ReviewSerializer
+class ListCreateDestroyViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    pass
 
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
+    permission_classes = (IsAuthenticatedOrReadOnly,) # Заменить
+    # фильтрация
+
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return TitleReadSerializer
+        return TitleWriteSerializer
+
+
+class CategoryViewSet(ListCreateDestroyViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,) # Заменить
+
+class GenreViewSet(ListCreateDestroyViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer()
+    permission_classes = (IsAuthenticatedOrReadOnly,) # Заменить
 
 class SignupViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = User.objects.all()
@@ -148,7 +182,6 @@ class UserViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
