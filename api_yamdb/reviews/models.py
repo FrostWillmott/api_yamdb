@@ -101,7 +101,13 @@ class Title(models.Model):
     @property
     def rating(self):
         """Возвращает среднюю оценку произведения."""
-        return self.reviews.aggregate(Avg("score"))["score__avg"]
+        reviews = Review.objects.filter(title=self)
+        # return self.reviews.aggregate(Avg("score"))["score__avg"]
+        return reviews.aggregate(Avg('score'))['score__avg']
+
+    @rating.setter
+    def rating(self, value):
+        self._rating = value
       
     class Meta:
         verbose_name = 'Произведение'

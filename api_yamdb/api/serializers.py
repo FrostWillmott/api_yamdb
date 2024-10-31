@@ -1,7 +1,7 @@
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from reviews.models import Genre, Category, Title, Comment, Review, Comment, Review, User
+from reviews.models import Genre, Category, Title, Comment, Review, User
 
 User = get_user_model()
 
@@ -21,7 +21,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
-    rating = serializers.IntegerField(read_only=True)  # может поправить потом
+    # rating = serializers.FloatField(read_only=True)  # может поправить потом
     genre = GenreSerializer(
         read_only=True,
         many=True
@@ -30,12 +30,12 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = ('id', 'name', 'year', 'genre', 'category', 'description', 'rating')
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для моделей произведений."""
-    rating = serializers.IntegerField(required=False)  # может поправить потом
+    # rating = serializers.FloatField(required=False)  # может поправить потом
     genre = serializers.SlugRelatedField(
         slug_field='slug',
         many=True,
@@ -48,18 +48,18 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = ('id', 'name', 'year', 'genre', 'category', 'description')
 
 
-class ReviewSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        slug_field='username',
-        read_only=True,
-    )
-    pub_date = serializers.DateTimeField(
-        read_only=True,
-        format="%Y-%m-%dT%H:%M:%SZ"
-    )
+# class ReviewSerializer(serializers.ModelSerializer):
+#     author = serializers.SlugRelatedField(
+#         slug_field='username',
+#         read_only=True,
+#     )
+#     pub_date = serializers.DateTimeField(
+#         read_only=True,
+#         format="%Y-%m-%dT%H:%M:%SZ"
+#     )
 
 class SignupSerializer(serializers.ModelSerializer):
 
