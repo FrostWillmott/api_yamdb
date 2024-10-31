@@ -60,6 +60,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     pub_date = serializers.DateTimeField(
         read_only=True,
         format="%Y-%m-%dT%H:%M:%SZ"
+    )
 
 class SignupSerializer(serializers.ModelSerializer):
 

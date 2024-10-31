@@ -1,4 +1,4 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
 class IsAdmin(BasePermission):
@@ -22,4 +22,11 @@ class IsModerator(BasePermission):
     def has_permission(self, request, view):
         return (
             request.user.is_authenticated and request.user.role == "moderator"
+        )
+
+class IsAuthenticatedOrReadOnly(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.method in SAFE_METHODS
+            or request.user.is_authenticated
         )

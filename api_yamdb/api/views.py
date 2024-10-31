@@ -25,7 +25,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Comment, Review, Title, User, Category, Genre, 
+from reviews.models import Comment, Review, Title, User, Category, Genre
 
 class ListCreateDestroyViewSet(
     mixins.CreateModelMixin,
