@@ -1,6 +1,4 @@
-import random
-import string
-
+from django.contrib.auth.tokens import default_token_generator
 from rest_framework.exceptions import ValidationError
 
 from api.permissions import IsAdmin, IsAdminOrReadOnly, \
@@ -28,7 +26,7 @@ from rest_framework.pagination import LimitOffsetPagination, \
     PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from reviews.models import Comment, Review, Title, User, Category, Genre
 
 class ListCreateDestroyViewSet(
@@ -73,7 +71,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
     lookup_field = 'slug'
 
 
-class SignupViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+class SignupViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
     permission_classes = (IsUserOrReadOnly,)
@@ -81,35 +79,20 @@ class SignupViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-
-        confirmation_code = self._generate_confirmation_code()
-        user.confirmation_code = confirmation_code
-        user.save()
-
-        self._send_confirmation_email(user, confirmation_code)
-
-        return Response(
-            {"email": user.email, "username": user.username},
-            status=status.HTTP_200_OK,
-        )
-
-    def _generate_confirmation_code(self):
-        """Генерирует случайный код подтверждения."""
-        return "".join(
-            random.choices(string.ascii_uppercase + string.digits, k=6)
-        )
-
-    def _send_confirmation_email(self, user, confirmation_code):
-        """Отправляет код подтверждения на email пользователя."""
+        username = serializer.validated_data["username"]
+        email = serializer.validated_data["email"]
+        user, created = User.objects.get_or_create(username=username,
+                                                   email=email)
+        confirmation_code = default_token_generator.make_token(user)
         send_mail(
-            subject="Ваш код подтверждения",
-            message=f"Ваш код подтверждения: {confirmation_code}",
-            from_email="from@example.com",
-            recipient_list=[user.email],
+            "Ваш код подтверждения",
+            f"Ваш код подтверждения: {confirmation_code}",
+            "from@example.com",
+            [user.email],
             fail_silently=False,
         )
-
+        return Response({"email": user.email, "username": user.username},
+                        status=status.HTTP_200_OK)
 
 class TokenViewSet(viewsets.ViewSet):
     def create(self, request):
@@ -119,9 +102,8 @@ class TokenViewSet(viewsets.ViewSet):
             user = User.objects.get(
                 username=serializer.validated_data["username"],
             )
-            if (
-                user.confirmation_code
-                != serializer.validated_data["confirmation_code"]
+            if not default_token_generator.check_token(
+                user, serializer.validated_data["confirmation_code"]
             ):
                 return Response(
                     {"detail": "Неверный код подтверждения."},
@@ -133,11 +115,10 @@ class TokenViewSet(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        refresh = RefreshToken.for_user(user)
+        token = AccessToken.for_user(user)
         return Response(
-            {"token": str(refresh.access_token)}, status=status.HTTP_200_OK
+            {"token": str(token)}, status=status.HTTP_200_OK
         )
-
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
