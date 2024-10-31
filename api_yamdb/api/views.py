@@ -63,7 +63,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
 class SignupViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
-    permission_classes = (IsUser,)
+    permission_classes = (AllowAny,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
