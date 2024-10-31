@@ -59,7 +59,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
     serializer_class = GenreSerializer()
     permission_classes = (IsAdminOrReadOnly,) # Заменить
 
-class SignupViewSet(viewsets.ModelViewSet):
+class SignupViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
     permission_classes = [AllowAny]
