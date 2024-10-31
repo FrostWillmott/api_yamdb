@@ -102,7 +102,6 @@ class Title(models.Model):
     def rating(self):
         """Возвращает среднюю оценку произведения."""
         reviews = Review.objects.filter(title=self)
-        # return self.reviews.aggregate(Avg("score"))["score__avg"]
         return reviews.aggregate(Avg('score'))['score__avg']
 
     @rating.setter
