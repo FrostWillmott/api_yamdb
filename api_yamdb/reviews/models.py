@@ -12,7 +12,6 @@ from django.db.models import Avg
 TEXT_OUTPUT_LIMIT = 20
 MAX_LENGTH_TEXT = 50
 
-# User = get_user_model()
 class NotMeValidator(RegexValidator):
     def __init__(self, *args, **kwargs):
         super().__init__(r"^(?!me$).*", *args, **kwargs)
