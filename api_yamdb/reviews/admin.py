@@ -1,3 +1,8 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Comment, Review, Title
+
+
+@admin.register(Title, Review, Comment)
+class ReviewAdmin(admin.ModelAdmin):
+    pass
