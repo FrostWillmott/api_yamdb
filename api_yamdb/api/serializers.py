@@ -125,6 +125,14 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date')
 
+    def validate(self, attrs):
+        if self.context["request"].method == "POST":
+            if self.Meta.model.objects.filter(
+                author=self.context["request"].user,
+                title=self.context["view"].kwargs["title_id"],
+            ).exists():
+                raise serializers.ValidationError("Отзыв уже существует")
+        return attrs
 
 
 class CommentSerializer(serializers.ModelSerializer):
