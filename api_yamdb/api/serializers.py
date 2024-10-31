@@ -77,23 +77,15 @@ class SignupSerializer(serializers.ModelSerializer):
         return user
 
     def validate(self, attrs):
-        username = attrs.get("username")
-        email = attrs.get("email")
-
-        if username.lower() == "me":
+        if attrs.get("username").lower() == "me":
             raise serializers.ValidationError('Username "me" запрещен')
-
-        existing_user = User.objects.filter(username=username).first()
-        if existing_user:
-            if existing_user.email == email:
-                return attrs
-            raise serializers.ValidationError(
-                "Пользователь с таким username уже существует"
-            )
-
-        if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError("Email уже зарегистрирован")
-
+        if User.objects.filter(email=attrs["email"],
+                               username=attrs["username"]).exists():
+            return attrs
+        if User.objects.filter(email=attrs["email"]).exists():
+            raise serializers.ValidationError("Пользователь с таким email уже существует")
+        if User.objects.filter(username=attrs["username"]).exists():
+            raise serializers.ValidationError("Пользователь с таким username уже существует")
         return attrs
 
 
