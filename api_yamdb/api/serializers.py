@@ -20,7 +20,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('name', 'slug')
 
 
-class TitleReadSerializer(serializers.ModelSerializer):    
+class TitleReadSerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField(read_only=True)  # может поправить потом
     genre = GenreSerializer(
         read_only=True,
@@ -35,21 +35,20 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для моделей произведений."""
-    rating = serializers.IntegerField(required=False) # может поправить потом
+    rating = serializers.IntegerField(required=False)  # может поправить потом
     genre = serializers.SlugRelatedField(
         slug_field='slug',
-        queryset=Genre.objects.all(),
-        many=True
+        many=True,
+        queryset=Genre.objects.all()
     )
     category = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.all()
     )
+
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year',
-                  'description', 'genre', 'category')
-
+        fields = '__all__'
 
 
 class ReviewSerializer(serializers.ModelSerializer):

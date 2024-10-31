@@ -64,6 +64,7 @@ class User(AbstractUser):
     def is_moderator(self):
         return self.role == "moderator"
 
+
 class Genre(models.Model):
     name = models.CharField(max_length=256, verbose_name='Жанр',)
     slug = models.SlugField(max_length=50, unique=True)
@@ -94,9 +95,9 @@ class Title(models.Model):
     genre = models.ManyToManyField(Genre, verbose_name='Жанр',
                                    blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL,
-                                related_name='titles',
-                                verbose_name='Категория',
-                                null=True, blank=True)
+                                 related_name='titles',
+                                 verbose_name='Категория',
+                                 null=True, blank=True)
     @property
     def rating(self):
         """Возвращает среднюю оценку произведения."""
