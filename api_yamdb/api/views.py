@@ -1,7 +1,8 @@
 import random
 import string
 
-from api.permissions import IsAdmin, IsAuthenticatedOrReadOnly
+from api.permissions import IsAdmin, IsAuthenticatedOrReadOnly, \
+    IsAdminOrReadOnly
 from api.serializers import (
     SignupSerializer,
     TokenSerializer,
@@ -17,7 +18,6 @@ from api.serializers import (
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg
-from django.shortcuts import get_object_or_404
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
@@ -50,7 +50,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,) # Заменить
+    permission_classes = (IsAdminOrReadOnly,) # Заменить
 
 class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
