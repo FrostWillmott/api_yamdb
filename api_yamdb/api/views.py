@@ -186,7 +186,7 @@ class UserViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrModeratorOrAuthorOrReadOnly)
+    permission_classes = (IsAdminOrModeratorOrAuthorOrReadOnly)
 
     def _get_title(self):
         return get_object_or_404(Title, id=self.kwargs["title_id"])
@@ -204,7 +204,7 @@ class ReviewViewSet(ModelViewSet):
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrModeratorOrAuthorOrReadOnly)
+    permission_classes = (IsAdminOrModeratorOrAuthorOrReadOnly)
 
     def _get_title(self):
         return get_object_or_404(Title, id=self.kwargs["title_id"])
