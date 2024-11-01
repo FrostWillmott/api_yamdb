@@ -1,11 +1,9 @@
-import random
-import string
-
 from django.contrib.auth.tokens import default_token_generator
-from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import ValidationError
 
 from api.permissions import IsAdmin, IsAdminOrReadOnly, \
-    IsAdminOrModeratorOrAuthorOrReadOnly, IsUser
+    IsAdminOrModeratorOrAuthorOrReadOnly, IsAuthenticatedOrReadOnly, \
+    IsUserOrReadOnly
 from api.serializers import (
     SignupSerializer,
     TokenSerializer,
@@ -21,10 +19,11 @@ from api.serializers import (
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg
-from rest_framework import mixins, permissions, status, viewsets
+from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import LimitOffsetPagination, \
+    PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
@@ -41,8 +40,12 @@ class ListCreateDestroyViewSet(
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Avg('reviews__score'))
-    permission_classes = (IsAdminOrReadOnly,) # Заменить
-    # фильтрация
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('category__slug', 'genre', 'year', 'name')
+    search_fields = ('name',)
+    pagination_class = PageNumberPagination
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -53,17 +56,25 @@ class TitleViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,) # Заменить
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+
 
 class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
-    serializer_class = GenreSerializer()
-    permission_classes = (IsAdminOrReadOnly,) # Заменить
+    serializer_class = GenreSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+
 
 class SignupViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = SignupSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = (IsUserOrReadOnly,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -108,7 +119,6 @@ class TokenViewSet(viewsets.ViewSet):
         return Response(
             {"token": str(token)}, status=status.HTTP_200_OK
         )
-
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -174,7 +184,8 @@ class UserViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (IsAdminOrModeratorOrAuthorOrReadOnly)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrModeratorOrAuthorOrReadOnly,)
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def _get_title(self):
         return get_object_or_404(Title, id=self.kwargs["title_id"])
@@ -186,13 +197,19 @@ class ReviewViewSet(ModelViewSet):
     def perform_create(self, serializer):
         title = self._get_title()
         user = self.request.user
+        if user.is_anonymous:
+            raise ValidationError(
+                "Authentication credentials were not provided.")
+        if Review.objects.filter(title=title, author=user).exists():
+            raise ValidationError("You have already reviewed this title.")
         serializer.save(author=user, title=title)
 
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (IsAdminOrModeratorOrAuthorOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrModeratorOrAuthorOrReadOnly,)
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def _get_title(self):
         return get_object_or_404(Title, id=self.kwargs["title_id"])
