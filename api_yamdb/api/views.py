@@ -19,18 +19,16 @@ from api.serializers import (
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
+from django_filters import rest_framework as django_filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import (
-    LimitOffsetPagination,
-    PageNumberPagination,
-)
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
@@ -43,14 +41,28 @@ class ListCreateDestroyViewSet(
     pass
 
 
+class TitleFilter(django_filters.FilterSet):
+    genre = django_filters.CharFilter(field_name="genre__slug")
+    category = django_filters.CharFilter(field_name="category__slug")
+    name = django_filters.CharFilter(field_name="name", lookup_expr="contains")
+    year = django_filters.NumberFilter(field_name="year")
+
+    class Meta:
+        model = Title
+        fields = ["genre", "category", "year", "name"]
+
+
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Avg("reviews__score"))
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ("category__slug", "genre", "year", "name")
+    filterset_class = TitleFilter
     search_fields = ("name",)
-    pagination_class = PageNumberPagination
-    http_method_names = ["get", "post", "patch", "delete"]
+    http_method_names = [
+        "get",
+        "post",
+        "patch",
+        "delete",
+    ]
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -86,9 +98,7 @@ class SignupViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data["username"]
         email = serializer.validated_data["email"]
-        user, created = User.objects.get_or_create(
-            username=username, email=email
-        )
+        user, _ = User.objects.get_or_create(username=username, email=email)
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
             "Ваш код подтверждения",

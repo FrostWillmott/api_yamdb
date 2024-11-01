@@ -1,8 +1,8 @@
 from django.contrib import admin
 
-from .models import Comment, Review, Title
+from .models import Category, Comment, Genre, Review, Title
 
 
-@admin.register(Title, Review, Comment)
+@admin.register(Title, Review, Comment, Category, Genre)
 class ReviewAdmin(admin.ModelAdmin):
     pass
