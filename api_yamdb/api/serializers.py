@@ -1,7 +1,7 @@
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from reviews.models import Genre, Category, Title, Comment, Review, Comment, Review, User
+from reviews.models import Genre, Category, Title, Comment, Review, User
 
 User = get_user_model()
 
@@ -20,8 +20,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('name', 'slug')
 
 
-class TitleReadSerializer(serializers.ModelSerializer):    
-    rating = serializers.IntegerField(read_only=True)  # может поправить потом
+class TitleReadSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(
         read_only=True,
         many=True
@@ -30,37 +29,24 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = ('id', 'name', 'year', 'genre', 'category', 'description', 'rating')
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для моделей произведений."""
-    rating = serializers.IntegerField(required=False) # может поправить потом
     genre = serializers.SlugRelatedField(
         slug_field='slug',
-        queryset=Genre.objects.all(),
-        many=True
+        many=True,
+        queryset=Genre.objects.all()
     )
     category = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.all()
     )
+
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year',
-                  'description', 'genre', 'category')
-
-
-
-class ReviewSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        slug_field='username',
-        read_only=True,
-    )
-    pub_date = serializers.DateTimeField(
-        read_only=True,
-        format="%Y-%m-%dT%H:%M:%SZ"
-    )
+        fields = ('id', 'name', 'year', 'genre', 'category', 'description')
 
 class SignupSerializer(serializers.ModelSerializer):
 
