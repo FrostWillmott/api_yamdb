@@ -231,13 +231,11 @@ class CommentViewSet(ModelViewSet):
     permission_classes = (IsAdminOrModeratorOrAuthorOrReadOnly,)
     http_method_names = ["get", "post", "patch", "delete"]
 
-    def _get_title(self):
-        return get_object_or_404(Title, id=self.kwargs["title_id"])
-
     def _get_review(self):
-        title = self._get_title()
         return get_object_or_404(
-            Review, id=self.kwargs["review_id"], title=title
+            Review,
+            id=self.kwargs["review_id"],
+            title__id=self.kwargs["title_id"],
         )
 
     def get_queryset(self):

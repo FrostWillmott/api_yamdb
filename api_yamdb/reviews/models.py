@@ -11,6 +11,10 @@ from django.db.models import Avg
 TEXT_OUTPUT_LIMIT = 20
 MAX_LENGTH_TEXT = 50
 
+MIN_SCORE = 1
+MAX_SCORE = 10
+VALIDATOR_MESSAGE = "Оценка должна быть от 1 до 10"
+
 
 class NotMeValidator(RegexValidator):
     def __init__(self, *args, **kwargs):
@@ -56,6 +60,11 @@ class User(AbstractUser):
         blank=True,
     )
 
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+        ordering = ("-id",)
+
     @property
     def is_admin(self):
         return self.role == "admin" or self.is_superuser
@@ -75,9 +84,10 @@ class Genre(models.Model):
     class Meta:
         verbose_name = "Жанр"
         verbose_name_plural = "Жанры"
+        ordering = ("slug",)
 
-        def __str__(self):
-            return self.name
+    def __str__(self):
+        return self.name
 
 
 class Category(models.Model):
@@ -87,9 +97,10 @@ class Category(models.Model):
     class Meta:
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
+        ordering = ("slug",)
 
-        def __str__(self):
-            return self.name
+    def __str__(self):
+        return self.name
 
 
 class Title(models.Model):
@@ -108,6 +119,13 @@ class Title(models.Model):
         blank=True,
     )
 
+    class Meta:
+        verbose_name = "Произведение"
+        verbose_name_plural = "Произведения"
+
+    def __str__(self):
+        return self.name[:TEXT_OUTPUT_LIMIT]
+
     @property
     def rating(self):
         """Возвращает среднюю оценку произведения."""
@@ -117,13 +135,6 @@ class Title(models.Model):
     @rating.setter
     def rating(self, value):
         self._rating = value
-
-    class Meta:
-        verbose_name = "Произведение"
-        verbose_name_plural = "Произведения"
-
-        def __str__(self):
-            return self.name[:TEXT_OUTPUT_LIMIT]
 
 
 class Review(models.Model):
@@ -142,7 +153,16 @@ class Review(models.Model):
     )
     score = models.IntegerField(
         "Оценка произведения",
-        validators=(MinValueValidator(1), MaxValueValidator(10)),
+        validators=(
+            MinValueValidator(
+                MIN_SCORE,
+                message=VALIDATOR_MESSAGE,
+            ),
+            MaxValueValidator(
+                MAX_SCORE,
+                message=VALIDATOR_MESSAGE,
+            ),
+        ),
     )
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
 
@@ -157,7 +177,8 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return self.text[:MAX_LENGTH_TEXT]
+        text = f"Отзыв на '{self.title}': {self.text}"
+        return text[:MAX_LENGTH_TEXT]
 
 
 class Comment(models.Model):
@@ -176,9 +197,9 @@ class Comment(models.Model):
     )
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
 
-    def __str__(self):
-        return self.text[:MAX_LENGTH_TEXT]
-
     class Meta:
         verbose_name = "Комментарий"
         verbose_name_plural = "Комментарии"
+
+    def __str__(self):
+        return self.text[:MAX_LENGTH_TEXT]
