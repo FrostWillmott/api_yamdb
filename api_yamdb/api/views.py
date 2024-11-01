@@ -1,3 +1,17 @@
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.db.models import Avg
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import mixins, permissions, status, viewsets
+from rest_framework.exceptions import ValidationError
+from rest_framework.filters import SearchFilter
+from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.tokens import AccessToken
+
+from api.filters import TitleFilter
 from api.permissions import (
     IsAdmin,
     IsAdminOrModeratorOrAuthorOrReadOnly,
@@ -16,19 +30,6 @@ from api.serializers import (
     UserProfileSerializer,
     UserSerializer,
 )
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.db.models import Avg
-from django_filters import rest_framework as django_filters
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, status, viewsets
-from rest_framework.exceptions import ValidationError
-from rest_framework.filters import SearchFilter
-from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
-from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
@@ -41,28 +42,19 @@ class ListCreateDestroyViewSet(
     pass
 
 
-class TitleFilter(django_filters.FilterSet):
-    genre = django_filters.CharFilter(field_name="genre__slug")
-    category = django_filters.CharFilter(field_name="category__slug")
-    name = django_filters.CharFilter(field_name="name", lookup_expr="contains")
-    year = django_filters.NumberFilter(field_name="year")
-
-    class Meta:
-        model = Title
-        fields = ["genre", "category", "year", "name"]
-
-
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Avg("reviews__score"))
     permission_classes = (IsAdminOrReadOnly,)
-    filterset_class = TitleFilter
     search_fields = ("name",)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
     http_method_names = [
         "get",
         "post",
         "patch",
         "delete",
     ]
+    pagination_class = LimitOffsetPagination
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -74,7 +66,7 @@ class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (SearchFilter,)
     search_fields = ("name",)
     lookup_field = "slug"
 
@@ -83,7 +75,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (SearchFilter,)
     search_fields = ("name",)
     lookup_field = "slug"
 
@@ -150,8 +142,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         partial = kwargs.pop("partial", True)
         instance = self.get_object()
         serializer = self.get_serializer(
-            instance, data=request.data, partial=partial
-        )
+            instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -187,9 +178,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=partial
-        )
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data, status=status.HTTP_200_OK)
