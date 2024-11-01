@@ -1,4 +1,3 @@
-
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import (
     MaxLengthValidator,
@@ -12,9 +11,11 @@ from django.db.models import Avg
 TEXT_OUTPUT_LIMIT = 20
 MAX_LENGTH_TEXT = 50
 
+
 class NotMeValidator(RegexValidator):
     def __init__(self, *args, **kwargs):
         super().__init__(r"^(?!me$).*", *args, **kwargs)
+
 
 class User(AbstractUser):
     ROLE_CHOICES = [
@@ -65,55 +66,66 @@ class User(AbstractUser):
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=256, verbose_name='Жанр',)
+    name = models.CharField(
+        max_length=256,
+        verbose_name="Жанр",
+    )
     slug = models.SlugField(max_length=50, unique=True)
 
     class Meta:
-        verbose_name = 'Жанр'
-        verbose_name_plural = 'Жанры'
+        verbose_name = "Жанр"
+        verbose_name_plural = "Жанры"
+
         def __str__(self):
             return self.name
 
 
 class Category(models.Model):
-    name = models.CharField(verbose_name='Категория', max_length=256)
+    name = models.CharField(verbose_name="Категория", max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
 
     class Meta:
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
+        verbose_name = "Категория"
+        verbose_name_plural = "Категории"
+
         def __str__(self):
             return self.name
 
 
 class Title(models.Model):
-    name = models.CharField(verbose_name='Название', max_length=256)
-    year = models.IntegerField(verbose_name='Год релиза')
-    description = models.TextField(verbose_name='Описание',
-                                   null=True, blank=True)
-    genre = models.ManyToManyField(Genre, verbose_name='Жанр',
-                                   blank=True)
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL,
-                                 related_name='titles',
-                                 verbose_name='Категория',
-                                 null=True, blank=True)
+    name = models.CharField(verbose_name="Название", max_length=256)
+    year = models.IntegerField(verbose_name="Год релиза")
+    description = models.TextField(
+        verbose_name="Описание", null=True, blank=True
+    )
+    genre = models.ManyToManyField(Genre, verbose_name="Жанр", blank=True)
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        related_name="titles",
+        verbose_name="Категория",
+        null=True,
+        blank=True,
+    )
+
     @property
     def rating(self):
         """Возвращает среднюю оценку произведения."""
         reviews = Review.objects.filter(title=self)
-        return reviews.aggregate(Avg('score'))['score__avg']
+        return reviews.aggregate(Avg("score"))["score__avg"]
 
     @rating.setter
     def rating(self, value):
         self._rating = value
-      
+
     class Meta:
-        verbose_name = 'Произведение'
-        verbose_name_plural = 'Произведения'
+        verbose_name = "Произведение"
+        verbose_name_plural = "Произведения"
+
         def __str__(self):
             return self.name[:TEXT_OUTPUT_LIMIT]
 
-      
+
 class Review(models.Model):
     title = models.ForeignKey(
         Title,

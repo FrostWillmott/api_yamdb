@@ -1,17 +1,18 @@
 from rest_framework import permissions
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 class IsAdmin(BasePermission):
     def has_permission(self, request, view):
-        return (
-            request.user.is_authenticated and request.user.is_admin
-        )
+        return request.user.is_authenticated and request.user.is_admin
+
 
 class IsAdminOrReadOnly(BasePermission):
     def has_permission(self, request, view):
-        return (request.method in SAFE_METHODS or (
-            request.user.is_authenticated and request.user.is_admin))
+        return request.method in SAFE_METHODS or (
+            request.user.is_authenticated and request.user.is_admin
+        )
+
 
 class IsAdminOrModeratorOrAuthorOrReadOnly(BasePermission):
     def has_permission(self, request, view):
@@ -25,18 +26,19 @@ class IsAdminOrModeratorOrAuthorOrReadOnly(BasePermission):
             or request.user.role == "moderator"
         )
 
+
 class IsUser(BasePermission):
     def has_object_permission(self, request, view, obj):
-        return (request.user.is_authenticated and obj == request.user)
+        return request.user.is_authenticated and obj == request.user
+
+
 class IsAuthenticatedOrReadOnly(BasePermission):
     def has_permission(self, request, view):
-        return (
-            request.method in SAFE_METHODS
-            or request.user.is_authenticated
-        )
+        return request.method in SAFE_METHODS or request.user.is_authenticated
+
 
 class IsUserOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
-        return (request.method in SAFE_METHODS
-            or (request.user.is_authenticated and obj.author == request.user)
-            )
+        return request.method in SAFE_METHODS or (
+            request.user.is_authenticated and obj.author == request.user
+        )
