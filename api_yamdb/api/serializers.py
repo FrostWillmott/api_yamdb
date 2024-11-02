@@ -78,14 +78,16 @@ class SignupSerializer(serializers.ModelSerializer):
             username=attrs["username"],
         ).exists():
             return attrs
+
+        validation_errors = {}
         if User.objects.filter(email=attrs["email"]).exists():
-            raise serializers.ValidationError(
-                "Пользователь с таким email уже существует",
-            )
+            validation_errors["email"] = "Пользователь с таким email уже существует"
         if User.objects.filter(username=attrs["username"]).exists():
-            raise serializers.ValidationError(
-                "Пользователь с таким username уже существует",
+            validation_errors["username"] = (
+                "Пользователь с таким username уже существует"
             )
+        if validation_errors:
+            raise serializers.ValidationError(validation_errors)
         return attrs
 
 
