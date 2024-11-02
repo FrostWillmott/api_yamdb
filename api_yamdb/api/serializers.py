@@ -77,6 +77,7 @@ class SignupSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=254)
 
     def validate(self, attrs):
+        feature/user_serializers_after_review
         user_by_email = User.objects.filter(email=attrs["email"]).first()
         user_by_username = User.objects.filter(username=attrs["username"]).first()
 
