@@ -38,6 +38,8 @@ class CategorySerializer(serializers.ModelSerializer):
 class TitleBaseSerializer(serializers.ModelSerializer):
     """Базовый сериализатор для модели Title."""
 
+    rating = serializers.FloatField(read_only=True)
+
     class Meta:
         model = Title
         fields = (
