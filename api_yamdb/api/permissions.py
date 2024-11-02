@@ -21,15 +21,9 @@ class IsAdminOrModeratorOrAuthorOrReadOnly(BasePermission):
         return (
             request.method in SAFE_METHODS
             or request.user.is_admin
+            or request.user.is_moderator
             or obj.author == request.user
-            or request.user.role == "moderator"
         )
-
-
-class IsUser(BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return request.user.is_authenticated and obj == request.user
-
 
 class IsUserOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
