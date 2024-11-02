@@ -1,15 +1,11 @@
+from rest_framework.exceptions import ValidationError
+from django.utils import timezone
+
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.core.validators import (
-    MaxValueValidator,
-    MinValueValidator,
-)
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
-from rest_framework.exceptions import ValidationError
-
-from django.core.exceptions import ValidationError
-from django.utils import timezone
 
 TEXT_OUTPUT_LIMIT = 20
 MAX_LENGTH_TEXT = 50
@@ -24,7 +20,6 @@ MIN_SCORE = 1
 MAX_SCORE = 10
 VALIDATOR_MESSAGE = "Оценка должна быть от 1 до 10"
 
-
 def validate_year(value):
     if value > timezone.now().year:
         raise ValidationError(
@@ -35,6 +30,7 @@ def validate_year(value):
 def me_username_validator(username):
     if username == "me":
         raise ValidationError("Username 'me' is not allowed.")
+
 
 class User(AbstractUser):
     verbose_name = "Пользователь"
@@ -47,7 +43,9 @@ class User(AbstractUser):
         ADMIN = "admin", "Admin"
 
     role = models.CharField(
-        max_length=MAX_LENGTH_ROLE, choices=Role.choices, default=Role.USER,
+        max_length=MAX_LENGTH_ROLE,
+        choices=Role.choices,
+        default=Role.USER,
     )
     bio = models.TextField(blank=True, max_length=MAX_LENGTH_BIO)
 
@@ -60,9 +58,9 @@ class User(AbstractUser):
         validators=(
             UnicodeUsernameValidator(
                 message="Введите допустимое имя пользователя."
-                    " Это значение может содержать только буквы,"
-                    " цифры и символы @/./+/-/_",
-        ),
+                "Это значение может содержать только буквы, "
+                "цифры и символы @/./+/-/_",
+            ),
             me_username_validator,
         ),
     )
@@ -130,7 +128,9 @@ class Title(models.Model):
     year = models.PositiveSmallIntegerField(verbose_name="Год релиза",
                                             validators=[validate_year])
     description = models.TextField(
-        verbose_name="Описание", null=True, blank=True,
+        verbose_name="Описание",
+        null=True,
+        blank=True,
     )
     genre = models.ManyToManyField(Genre, verbose_name="Жанр", blank=True)
     category = models.ForeignKey(
@@ -154,25 +154,12 @@ class Title(models.Model):
     def rating(self):
         """Возвращает среднюю оценку произведения."""
         reviews = Review.objects.filter(title=self)
-<<<<<<< HEAD
         return reviews.aggregate(Avg("score"))["score__avg"]
-=======
-        return reviews.aggregate(Avg('score'))['score__avg']
->>>>>>> 52b05a1fd46d73e0bb6e69af0a283ff1c6ed83dd
 
     @rating.setter
     def rating(self, value):
         self._rating = value
-<<<<<<< HEAD
 
-=======
-      
-    class Meta:
-        verbose_name = 'Произведение'
-        verbose_name_plural = 'Произведения'
-        def __str__(self):
-            return self.name[:TEXT_OUTPUT_LIMIT]
->>>>>>> 52b05a1fd46d73e0bb6e69af0a283ff1c6ed83dd
 
 class Review(models.Model):
     title = models.ForeignKey(
