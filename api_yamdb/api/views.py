@@ -110,8 +110,7 @@ def get_token(request):
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    user = get_object_or_404(
-        User, username=serializer.validated_data["username"])
+    user = get_object_or_404(User, username=serializer.validated_data["username"])
     confirmation_code = serializer.validated_data["confirmation_code"]
 
     if not default_token_generator.check_token(user, confirmation_code):
@@ -167,19 +166,10 @@ class ReviewViewSet(ModelViewSet):
         return get_object_or_404(Title, id=self.kwargs["title_id"])
 
     def get_queryset(self):
-        title = self._get_title()
-        return Review.objects.filter(title=title)
+        return self._get_title().reviews.all()
 
     def perform_create(self, serializer):
-        title = self._get_title()
-        user = self.request.user
-        if user.is_anonymous:
-            raise ValidationError(
-                "Authentication credentials were not provided.",
-            )
-        if Review.objects.filter(title=title, author=user).exists():
-            raise ValidationError("You have already reviewed this title.")
-        serializer.save(author=user, title=title)
+        serializer.save(author=self.request.user, title=self._get_title())
 
 
 class CommentViewSet(ModelViewSet):
