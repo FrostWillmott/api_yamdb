@@ -111,7 +111,8 @@ def get_token(request):
     serializer.is_valid(raise_exception=True)
 
     user = get_object_or_404(
-        User, username=serializer.validated_data["username"]
+        User,
+        username=serializer.validated_data["username"],
     )
     confirmation_code = serializer.validated_data["confirmation_code"]
 
@@ -144,7 +145,9 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(request.user)
             return Response(serializer.data)
         serializer = self.get_serializer(
-            request.user, data=request.data, partial=True
+            request.user,
+            data=request.data,
+            partial=True,
         )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
