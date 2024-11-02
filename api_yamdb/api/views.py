@@ -5,6 +5,8 @@ from django_filters import rest_framework as django_filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
@@ -14,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
+from api.filters import TitleFilter
 from api.permissions import (
     IsAdmin,
     IsAdminOrModeratorOrAuthorOrReadOnly,
@@ -43,28 +46,19 @@ class ListCreateDestroyViewSet(
     pass
 
 
-class TitleFilter(django_filters.FilterSet):
-    genre = django_filters.CharFilter(field_name="genre__slug")
-    category = django_filters.CharFilter(field_name="category__slug")
-    name = django_filters.CharFilter(field_name="name", lookup_expr="contains")
-    year = django_filters.NumberFilter(field_name="year")
-
-    class Meta:
-        model = Title
-        fields = ["genre", "category", "year", "name"]
-
-
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Avg("reviews__score"))
     permission_classes = (IsAdminOrReadOnly,)
-    filterset_class = TitleFilter
     search_fields = ("name",)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
     http_method_names = [
         "get",
         "post",
         "patch",
         "delete",
     ]
+    pagination_class = LimitOffsetPagination
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -76,7 +70,7 @@ class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (SearchFilter,)
     search_fields = ("name",)
     lookup_field = "slug"
 
@@ -85,7 +79,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (SearchFilter,)
     search_fields = ("name",)
     lookup_field = "slug"
 
@@ -184,13 +178,11 @@ class CommentViewSet(ModelViewSet):
     permission_classes = (IsAdminOrModeratorOrAuthorOrReadOnly,)
     http_method_names = ["get", "post", "patch", "delete"]
 
-    def _get_title(self):
-        return get_object_or_404(Title, id=self.kwargs["title_id"])
-
     def _get_review(self):
-        title = self._get_title()
         return get_object_or_404(
-            Review, id=self.kwargs["review_id"], title=title,
+            Review,
+            id=self.kwargs["review_id"],
+            title__id=self.kwargs["title_id"],
         )
 
     def get_queryset(self):
