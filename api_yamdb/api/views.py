@@ -1,8 +1,23 @@
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.db.models import Avg
+from django_filters import rest_framework as django_filters
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import ValidationError
+from rest_framework.filters import SearchFilter
+from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.tokens import AccessToken
+
 from api.permissions import (
     IsAdmin,
     IsAdminOrModeratorOrAuthorOrReadOnly,
     IsAdminOrReadOnly,
-    IsUserOrReadOnly,
 )
 from api.serializers import (
     CategorySerializer,
@@ -16,19 +31,7 @@ from api.serializers import (
     UserProfileSerializer,
     UserSerializer,
 )
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.db.models import Avg
-from django_filters import rest_framework as django_filters
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, status, viewsets
-from rest_framework.exceptions import ValidationError
-from rest_framework.filters import SearchFilter
-from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
-from rest_framework_simplejwt.tokens import AccessToken
+from api_yamdb import settings
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
@@ -87,56 +90,42 @@ class GenreViewSet(ListCreateDestroyViewSet):
     search_fields = ("name",)
     lookup_field = "slug"
 
-
-class SignupViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    queryset = User.objects.all()
-    serializer_class = SignupSerializer
-    permission_classes = (IsUserOrReadOnly,)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data["username"]
-        email = serializer.validated_data["email"]
-        user, _ = User.objects.get_or_create(username=username, email=email)
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(
-            "Ваш код подтверждения",
-            f"Ваш код подтверждения: {confirmation_code}",
-            "from@example.com",
-            [user.email],
-            fail_silently=False,
-        )
-        return Response(
-            {"email": user.email, "username": user.username},
-            status=status.HTTP_200_OK,
-        )
+@api_view(['POST'])
+@permission_classes((AllowAny,))
+def signup(request):
+    serializer = SignupSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.validated_data["username"]
+    email = serializer.validated_data["email"]
+    user, _ = User.objects.get_or_create(username=username, email=email)
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(
+        "Ваш код подтверждения",
+        f"Ваш код подтверждения: {confirmation_code}",
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        fail_silently=False,
+    )
+    return Response(
+        {"email": user.email, "username": user.username},
+        status=status.HTTP_200_OK,
+    )
 
 
-class TokenViewSet(viewsets.ViewSet):
-    def create(self, request):
-        serializer = TokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        try:
-            user = User.objects.get(
-                username=serializer.validated_data["username"],
-            )
-            if not default_token_generator.check_token(
-                user, serializer.validated_data["confirmation_code"]
-            ):
-                return Response(
-                    {"detail": "Неверный код подтверждения."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        except User.DoesNotExist:
-            return Response(
-                {"detail": "Пользователь не найден."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def get_token(request):
+    serializer = TokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
 
-        token = AccessToken.for_user(user)
-        return Response({"token": str(token)}, status=status.HTTP_200_OK)
+    user = get_object_or_404(User, username=serializer.validated_data["username"])
+    confirmation_code = serializer.validated_data["confirmation_code"]
 
+    if not default_token_generator.check_token(user, confirmation_code):
+        return Response({"detail": "Неверный код подтверждения."}, status=status.HTTP_400_BAD_REQUEST)
+
+    token = AccessToken.for_user(user)
+    return Response({"token": str(token)}, status=status.HTTP_200_OK)
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()

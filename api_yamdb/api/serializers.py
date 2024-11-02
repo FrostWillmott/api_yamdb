@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 User = get_user_model()
@@ -64,10 +65,6 @@ class SignupSerializer(serializers.ModelSerializer):
             "username": {"validators": User.username.field.validators},
             "email": {"validators": User.email.field.validators},
         }
-
-    def create(self, validated_data):
-        user, _ = User.objects.get_or_create(**validated_data)
-        return user
 
     def validate(self, attrs):
         if attrs.get("username").lower() == "me":

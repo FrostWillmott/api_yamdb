@@ -1,21 +1,21 @@
+from rest_framework.decorators import api_view
+
 from api.views import (
     CategoryViewSet,
     CommentViewSet,
     GenreViewSet,
     ReviewViewSet,
-    SignupViewSet,
     TitleViewSet,
-    TokenViewSet,
     UserProfileViewSet,
     UserViewSet,
+    signup,
+    get_token,
 )
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 v1_router = DefaultRouter()
 
-v1_router.register("auth/signup", SignupViewSet, basename="signup")
-v1_router.register("auth/token", TokenViewSet, basename="token")
 v1_router.register(r"users", UserViewSet, basename="user")
 v1_router.register("titles", TitleViewSet, basename="titles")
 v1_router.register("categories", CategoryViewSet, basename="categories")
@@ -33,6 +33,8 @@ v1_router.register(
 )
 
 urlpatterns = [
+    path('v1/auth/signup/', signup, name='signup'),
+    path('v1/auth/token/', get_token, name='get_token'),
     path(
         "v1/users/me/",
         UserProfileViewSet.as_view({"get": "retrieve", "patch": "update"}),
