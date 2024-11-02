@@ -14,13 +14,15 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
 
-from api.filters import TitleFilter
-from api.permissions import (
+from reviews.models import Category, Genre, Review, Title, User
+
+from .filters import TitleFilter
+from .permissions import (
     IsAdmin,
     IsAdminOrModeratorOrAuthorOrReadOnly,
     IsAdminOrReadOnly,
 )
-from api.serializers import (
+from .serializers import (
     CategorySerializer,
     CommentSerializer,
     GenreSerializer,
@@ -32,8 +34,7 @@ from api.serializers import (
     UserSerializer,
     UserSerializerAdmin,
 )
-from api.viewsets import ListCreateDestroyViewSet
-from reviews.models import Category, Genre, Review, Title, User
+from .viewsets import ListCreateDestroyViewSet
 
 
 class CategoryViewSet(ListCreateDestroyViewSet):
