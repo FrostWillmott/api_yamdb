@@ -1,8 +1,10 @@
 from django.contrib import admin
 
-from .models import Comment, Review, Title
+from .models import Category, Comment, Genre, Review, Title
 
 
-@admin.register(Title, Review, Comment)
-class ReviewAdmin(admin.ModelAdmin):
-    pass
+admin.site.register(Title)
+admin.site.register(Category)
+admin.site.register(Genre)
+admin.site.register(Comment)
+admin.site.register(Review)
