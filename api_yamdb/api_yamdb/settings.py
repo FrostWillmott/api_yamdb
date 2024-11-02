@@ -121,7 +121,11 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
+<<<<<<< HEAD
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=24),
+=======
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+>>>>>>> 52b05a1fd46d73e0bb6e69af0a283ff1c6ed83dd
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",

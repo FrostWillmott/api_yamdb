@@ -154,12 +154,25 @@ class Title(models.Model):
     def rating(self):
         """Возвращает среднюю оценку произведения."""
         reviews = Review.objects.filter(title=self)
+<<<<<<< HEAD
         return reviews.aggregate(Avg("score"))["score__avg"]
+=======
+        return reviews.aggregate(Avg('score'))['score__avg']
+>>>>>>> 52b05a1fd46d73e0bb6e69af0a283ff1c6ed83dd
 
     @rating.setter
     def rating(self, value):
         self._rating = value
+<<<<<<< HEAD
 
+=======
+      
+    class Meta:
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
+        def __str__(self):
+            return self.name[:TEXT_OUTPUT_LIMIT]
+>>>>>>> 52b05a1fd46d73e0bb6e69af0a283ff1c6ed83dd
 
 class Review(models.Model):
     title = models.ForeignKey(

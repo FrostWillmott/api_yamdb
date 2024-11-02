@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from django.contrib.auth import get_user_model
+<<<<<<< HEAD
 from django.contrib.auth.validators import UnicodeUsernameValidator
 
 from reviews.models import (
@@ -13,6 +14,10 @@ from reviews.models import (
     User,
     me_username_validator,
 )
+=======
+from rest_framework import serializers
+from reviews.models import Genre, Category, Title, Comment, Review, User
+>>>>>>> 52b05a1fd46d73e0bb6e69af0a283ff1c6ed83dd
 
 User = get_user_model()
 
@@ -34,6 +39,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
+<<<<<<< HEAD
     """Сериализатор для чтения данных модели Title."""
 
     genre = GenreSerializer(many=True)
@@ -55,6 +61,21 @@ class TitleReadSerializer(serializers.ModelSerializer):
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для записи данных модели Title."""
 
+=======
+    genre = GenreSerializer(
+        read_only=True,
+        many=True
+    )
+    category = CategorySerializer(read_only=True)
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'year', 'genre', 'category', 'description', 'rating')
+
+
+class TitleWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для моделей произведений."""
+>>>>>>> 52b05a1fd46d73e0bb6e69af0a283ff1c6ed83dd
     genre = serializers.SlugRelatedField(
         slug_field="slug",
         many=True,
@@ -67,6 +88,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
+<<<<<<< HEAD
         fields = ("id", "name", "year", "genre", "category", "description")
 
 
@@ -94,6 +116,34 @@ class SignupSerializer(serializers.Serializer):
                     "Пользователь с таким username уже существует"
                 )
             raise serializers.ValidationError(error_msg)
+=======
+        fields = ('id', 'name', 'year', 'genre', 'category', 'description')
+
+class SignupSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ["username", "email"]
+        extra_kwargs = {
+            "username": {"validators": User.username.field.validators},
+            "email": {"validators": User.email.field.validators},
+        }
+
+    def create(self, validated_data):
+        user, _ = User.objects.get_or_create(**validated_data)
+        return user
+
+    def validate(self, attrs):
+        if attrs.get("username").lower() == "me":
+            raise serializers.ValidationError('Username "me" запрещен')
+        if User.objects.filter(email=attrs["email"],
+                               username=attrs["username"]).exists():
+            return attrs
+        if User.objects.filter(email=attrs["email"]).exists():
+            raise serializers.ValidationError("Пользователь с таким email уже существует")
+        if User.objects.filter(username=attrs["username"]).exists():
+            raise serializers.ValidationError("Пользователь с таким username уже существует")
+>>>>>>> 52b05a1fd46d73e0bb6e69af0a283ff1c6ed83dd
         return attrs
 
 
