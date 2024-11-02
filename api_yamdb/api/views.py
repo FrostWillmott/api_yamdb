@@ -1,5 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import mixins, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
@@ -32,16 +32,18 @@ from api.serializers import (
     UserSerializer,
     UserSerializerAdmin,
 )
-from reviews.models import Category, Comment, Genre, Review, Title, User
+from api.viewsets import ListCreateDestroyViewSet
+from reviews.models import Category, Genre, Review, Title, User
 
 
-class ListCreateDestroyViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
-    pass
+class CategoryViewSet(ListCreateDestroyViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class GenreViewSet(ListCreateDestroyViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -62,24 +64,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.request.method in permissions.SAFE_METHODS:
             return TitleReadSerializer
         return TitleWriteSerializer
-
-
-class CategoryViewSet(ListCreateDestroyViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (SearchFilter,)
-    search_fields = ("name",)
-    lookup_field = "slug"
-
-
-class GenreViewSet(ListCreateDestroyViewSet):
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (SearchFilter,)
-    search_fields = ("name",)
-    lookup_field = "slug"
 
 
 @api_view(["POST"])
@@ -190,7 +174,7 @@ class CommentViewSet(ModelViewSet):
 
     def get_queryset(self):
         review = self._get_review()
-        return Comment.objects.filter(review=review)
+        return review.comments.all()
 
     def perform_create(self, serializer):
         review = self._get_review()
