@@ -1,68 +1,76 @@
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import (
-    MaxLengthValidator,
     MaxValueValidator,
     MinValueValidator,
-    RegexValidator,
 )
 from django.db import models
 from django.db.models import Avg
+from rest_framework.exceptions import ValidationError
 
 TEXT_OUTPUT_LIMIT = 20
 MAX_LENGTH_TEXT = 50
 
+MAX_LENGTH_ROLE = 10
+MAX_LENGTH_CONFIRMATION_CODE = 6
+MAX_LENGTH_USERNAME = 150
+MAX_LENGTH_NAME = 150
+MAX_LENGTH_BIO = 500
 
-class NotMeValidator(RegexValidator):
-    def __init__(self, *args, **kwargs):
-        super().__init__(r"^(?!me$).*", *args, **kwargs)
 
+def me_username_validator(username):
+    if username == "me":
+        raise ValidationError("Username 'me' is not allowed.")
 
 class User(AbstractUser):
-    ROLE_CHOICES = [
-        ("user", "User"),
-        ("moderator", "Moderator"),
-        ("admin", "Admin"),
-    ]
+    verbose_name = "Пользователь"
+    verbose_name_plural = "Пользователи"
+    ordering = ("username",)
+
+    class Role(models.TextChoices):
+        USER = "user", "User"
+        MODERATOR = "moderator", "Moderator"
+        ADMIN = "admin", "Admin"
+
     role = models.CharField(
-        max_length=10, choices=ROLE_CHOICES, default="user"
+        max_length=MAX_LENGTH_ROLE, choices=Role.choices, default=Role.USER
     )
-    confirmation_code = models.CharField(max_length=6, blank=True, null=True)
-    bio = models.TextField(blank=True, null=True)
+    bio = models.TextField(blank=True, max_length=MAX_LENGTH_BIO)
 
     email = models.EmailField(
-        max_length=254,
-        validators=[MaxLengthValidator(254), NotMeValidator()],
         unique=True,
     )
     username = models.CharField(
-        max_length=150,
+        max_length=MAX_LENGTH_USERNAME,
         unique=True,
-        validators=[
-            MaxLengthValidator(150),
-            RegexValidator(
-                regex=r"^[\w.@+-]+\Z",
-                message=r"Username must match the pattern: ^[\w.@+-]+\Z",
-            ),
-        ],
+        validators=(
+            UnicodeUsernameValidator(
+                message="Введите допустимое имя пользователя."
+                    " Это значение может содержать только буквы,"
+                    " цифры и символы @/./+/-/_"
+        ),
+            me_username_validator
+        ),
     )
     first_name = models.CharField(
-        max_length=150,
-        validators=[MaxLengthValidator(150)],
+        max_length=MAX_LENGTH_NAME,
         blank=True,
     )
     last_name = models.CharField(
-        max_length=150,
-        validators=[MaxLengthValidator(150)],
+        max_length=MAX_LENGTH_NAME,
         blank=True,
     )
 
     @property
     def is_admin(self):
-        return self.role == "admin" or self.is_superuser
+        return self.role == self.Role.ADMIN or self.is_superuser
 
     @property
     def is_moderator(self):
-        return self.role == "moderator"
+        return self.role == self.Role.MODERATOR
+
+    def __str__(self):
+        return self.username
 
 
 class Genre(models.Model):
