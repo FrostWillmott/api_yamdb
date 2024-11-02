@@ -157,6 +157,13 @@ class Title(models.Model):
     def __str__(self):
         return f"Произведение: {self.name}"
 
+    class Meta:
+        verbose_name = "Произведение"
+        verbose_name_plural = "Произведения"
+
+        def __str__(self):
+            return self.name[:TEXT_OUTPUT_LIMIT]
+
 
 class Review(models.Model):
     title = models.ForeignKey(
@@ -199,8 +206,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        text = f"Отзыв на '{self.title}': {self.text}"
-        return text[:MAX_LENGTH_TEXT]
+        return self.text[:MAX_LENGTH_TEXT]
 
 
 class Comment(models.Model):
@@ -218,6 +224,9 @@ class Comment(models.Model):
         verbose_name="Автор комментария",
     )
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
+
+    def __str__(self):
+        return self.text[:MAX_LENGTH_TEXT]
 
     class Meta:
         verbose_name = "Комментарий"
