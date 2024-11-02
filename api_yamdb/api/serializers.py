@@ -1,8 +1,17 @@
+from django.contrib.auth import get_user_model
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 
-from django.contrib.auth import get_user_model
-
-from reviews.models import Category, Comment, Genre, Review, Title, User
+from reviews.models import (
+    MAX_LENGTH_USERNAME,
+    Category,
+    Comment,
+    Genre,
+    Review,
+    Title,
+    User,
+    me_username_validator,
+)
 
 User = get_user_model()
 
@@ -60,41 +69,33 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "year", "genre", "category", "description")
 
 
-class SignupSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = ["username", "email"]
-        extra_kwargs = {
-            "username": {"validators": User.username.field.validators},
-            "email": {"validators": User.email.field.validators},
-        }
+class SignupSerializer(serializers.Serializer):
+    username = serializers.CharField(
+        max_length=MAX_LENGTH_USERNAME,
+        validators=[UnicodeUsernameValidator(), me_username_validator]
+    )
+    email = serializers.EmailField(max_length=254)
 
     def validate(self, attrs):
-        if attrs.get("username").lower() == "me":
-            raise serializers.ValidationError('Username "me" запрещен')
-        if User.objects.filter(
-            email=attrs["email"],
-            username=attrs["username"],
-        ).exists():
-            return attrs
+        feature/user_serializers_after_review
+        user_by_email = User.objects.filter(email=attrs["email"]).first()
+        user_by_username = User.objects.filter(username=attrs["username"]).first()
 
-        validation_errors = {}
-        if User.objects.filter(email=attrs["email"]).exists():
-            validation_errors["email"] = "Пользователь с таким email уже существует"
-        if User.objects.filter(username=attrs["username"]).exists():
-            validation_errors["username"] = (
-                "Пользователь с таким username уже существует"
-            )
-        if validation_errors:
-            raise serializers.ValidationError(validation_errors)
+        if user_by_email != user_by_username:
+            error_msg = {}
+            if user_by_email is not None:
+                error_msg["email"] = "Пользователь с таким email уже существует"
+            if user_by_username is not None:
+                error_msg["username"] = "Пользователь с таким username уже существует"
+            raise serializers.ValidationError(error_msg)
         return attrs
 
 
 class TokenSerializer(serializers.Serializer):
     """Сериализатор для получения токена."""
 
-    username = serializers.CharField()
+    username = serializers.CharField(max_length=MAX_LENGTH_USERNAME,
+        validators=[UnicodeUsernameValidator(), me_username_validator])
     confirmation_code = serializers.CharField()
 
 
