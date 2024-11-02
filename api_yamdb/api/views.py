@@ -1,6 +1,3 @@
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
@@ -12,6 +9,11 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
+
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.db.models import Avg
 
 from api.filters import TitleFilter
 from api.permissions import (
@@ -30,7 +32,6 @@ from api.serializers import (
     TokenSerializer,
     UserSerializer,
 )
-from api_yamdb import settings
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
@@ -80,6 +81,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
     search_fields = ("name",)
     lookup_field = "slug"
 
+
 @api_view(["POST"])
 @permission_classes((AllowAny,))
 def signup(request):
@@ -112,7 +114,10 @@ def get_token(request):
     confirmation_code = serializer.validated_data["confirmation_code"]
 
     if not default_token_generator.check_token(user, confirmation_code):
-        return Response({"detail": "Неверный код подтверждения."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"detail": "Неверный код подтверждения."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     token = AccessToken.for_user(user)
     return Response({"token": str(token)}, status=status.HTTP_200_OK)
@@ -128,7 +133,11 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ["username"]
     http_method_names = ["get", "post", "patch", "delete"]
 
-    @action(detail=False, methods=["get", "patch"], permission_classes=[permissions.IsAuthenticated])
+    @action(
+        detail=False,
+        methods=["get", "patch"],
+        permission_classes=[permissions.IsAuthenticated],
+    )
     def me(self, request):
         if request.method == "GET":
             serializer = self.get_serializer(request.user)
@@ -139,10 +148,13 @@ class UserViewSet(viewsets.ModelViewSet):
                     {"role": "Вы не можете менять роль пользователя."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            serializer = self.get_serializer(request.user, data=request.data, partial=True)
+            serializer = self.get_serializer(
+                request.user, data=request.data, partial=True
+            )
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
             return Response(serializer.data)
+
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer

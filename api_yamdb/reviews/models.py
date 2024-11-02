@@ -1,12 +1,10 @@
+from rest_framework.exceptions import ValidationError
+
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.core.validators import (
-    MaxValueValidator,
-    MinValueValidator,
-)
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
-from rest_framework.exceptions import ValidationError
 
 TEXT_OUTPUT_LIMIT = 20
 MAX_LENGTH_TEXT = 50
@@ -21,10 +19,10 @@ MAX_SCORE = 10
 VALIDATOR_MESSAGE = "Оценка должна быть от 1 до 10"
 
 
-
 def me_username_validator(username):
     if username == "me":
         raise ValidationError("Username 'me' is not allowed.")
+
 
 class User(AbstractUser):
     verbose_name = "Пользователь"
@@ -37,7 +35,9 @@ class User(AbstractUser):
         ADMIN = "admin", "Admin"
 
     role = models.CharField(
-        max_length=MAX_LENGTH_ROLE, choices=Role.choices, default=Role.USER,
+        max_length=MAX_LENGTH_ROLE,
+        choices=Role.choices,
+        default=Role.USER,
     )
     bio = models.TextField(blank=True, max_length=MAX_LENGTH_BIO)
 
@@ -50,9 +50,9 @@ class User(AbstractUser):
         validators=(
             UnicodeUsernameValidator(
                 message="Введите допустимое имя пользователя."
-                    " Это значение может содержать только буквы,"
-                    " цифры и символы @/./+/-/_",
-        ),
+                "Это значение может содержать только буквы, "
+                "цифры и символы @/./+/-/_",
+            ),
             me_username_validator,
         ),
     )
@@ -115,7 +115,9 @@ class Title(models.Model):
     name = models.CharField(verbose_name="Название", max_length=256)
     year = models.IntegerField(verbose_name="Год релиза")
     description = models.TextField(
-        verbose_name="Описание", null=True, blank=True,
+        verbose_name="Описание",
+        null=True,
+        blank=True,
     )
     genre = models.ManyToManyField(Genre, verbose_name="Жанр", blank=True)
     category = models.ForeignKey(

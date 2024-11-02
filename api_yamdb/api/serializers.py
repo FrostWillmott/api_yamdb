@@ -1,5 +1,7 @@
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
+
+from django.contrib.auth import get_user_model
+
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 User = get_user_model()
@@ -44,10 +46,13 @@ class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для записи данных модели Title."""
 
     genre = serializers.SlugRelatedField(
-        slug_field="slug", many=True, queryset=Genre.objects.all(),
+        slug_field="slug",
+        many=True,
+        queryset=Genre.objects.all(),
     )
     category = serializers.SlugRelatedField(
-        slug_field="slug", queryset=Category.objects.all(),
+        slug_field="slug",
+        queryset=Category.objects.all(),
     )
 
     class Meta:
@@ -69,7 +74,8 @@ class SignupSerializer(serializers.ModelSerializer):
         if attrs.get("username").lower() == "me":
             raise serializers.ValidationError('Username "me" запрещен')
         if User.objects.filter(
-            email=attrs["email"], username=attrs["username"],
+            email=attrs["email"],
+            username=attrs["username"],
         ).exists():
             return attrs
         if User.objects.filter(email=attrs["email"]).exists():
@@ -113,7 +119,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     pub_date = serializers.DateTimeField(
-        read_only=True, format="%Y-%m-%dT%H:%M:%SZ",
+        read_only=True,
+        format="%Y-%m-%dT%H:%M:%SZ",
     )
 
     class Meta:
@@ -138,7 +145,8 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     pub_date = serializers.DateTimeField(
-        read_only=True, format="%Y-%m-%dT%H:%M:%SZ",
+        read_only=True,
+        format="%Y-%m-%dT%H:%M:%SZ",
     )
 
     class Meta:
