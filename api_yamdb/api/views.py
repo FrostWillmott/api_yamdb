@@ -1,7 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
@@ -112,7 +111,8 @@ def get_token(request):
     serializer.is_valid(raise_exception=True)
 
     user = get_object_or_404(
-        User, username=serializer.validated_data["username"])
+        User, username=serializer.validated_data["username"]
+    )
     confirmation_code = serializer.validated_data["confirmation_code"]
 
     if not default_token_generator.check_token(user, confirmation_code):
@@ -144,7 +144,8 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(request.user)
             return Response(serializer.data)
         serializer = self.get_serializer(
-            request.user, data=request.data, partial=True)
+            request.user, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)

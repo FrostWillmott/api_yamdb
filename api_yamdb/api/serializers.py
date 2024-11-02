@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import serializers
 
 from django.contrib.auth import get_user_model
@@ -51,6 +53,13 @@ class TitleReadSerializer(serializers.ModelSerializer):
             "rating",
         )
 
+    def to_representation(self, instance):
+        """Override to_representation to handle empty description."""
+        representation = super().to_representation(instance)
+        if representation.get("description") is None:
+            representation["description"] = ""
+        return representation
+
 
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для записи данных модели Title."""
@@ -67,7 +76,35 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = ("id", "name", "year", "genre", "category", "description")
+        fields = (
+            "id",
+            "name",
+            "year",
+            "genre",
+            "category",
+            "description",
+            "rating",
+        )
+
+    def validate_year(self, value):
+        if value > datetime.now().year:
+            raise serializers.ValidationError(
+                "Год выпуска не может быть больше текущего"
+            )
+        return value
+
+    def validate_genre(self, value):
+        if not value:
+            raise serializers.ValidationError("Необходимо указать жанр")
+        return value
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["genre"] = GenreSerializer(
+            instance.genre.all(), many=True
+        ).data
+        representation["category"] = CategorySerializer(instance.category).data
+        return representation
 
 
 class SignupSerializer(serializers.Serializer):
@@ -79,7 +116,9 @@ class SignupSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         user_by_email = User.objects.filter(email=attrs["email"]).first()
-        user_by_username = User.objects.filter(username=attrs["username"]).first()
+        user_by_username = User.objects.filter(
+            username=attrs["username"]
+        ).first()
 
         if user_by_email != user_by_username:
             error_msg = {}
@@ -98,8 +137,10 @@ class SignupSerializer(serializers.Serializer):
 class TokenSerializer(serializers.Serializer):
     """Сериализатор для получения токена."""
 
-    username = serializers.CharField(max_length=MAX_LENGTH_USERNAME,
-        validators=[UnicodeUsernameValidator(), me_username_validator])
+    username = serializers.CharField(
+        max_length=MAX_LENGTH_USERNAME,
+        validators=[UnicodeUsernameValidator(), me_username_validator],
+    )
     confirmation_code = serializers.CharField()
 
 
