@@ -87,3 +87,10 @@ python manage.py runserver
 pytest
 ```
 
+Как загрузить данные из csv файла в базу данных:
+
+Выполните команду в sql консоли:
+
+```bash
+LOAD DATA INFILE '/home/export_file.csv' INTO TABLE table_name FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '/n' IGNORE 1 ROWS;
+```
