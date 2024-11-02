@@ -1,6 +1,7 @@
+from rest_framework import serializers
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from rest_framework import serializers
 
 from reviews.models import (
     MAX_LENGTH_USERNAME,
@@ -77,16 +78,21 @@ class SignupSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=254)
 
     def validate(self, attrs):
-        feature/user_serializers_after_review
         user_by_email = User.objects.filter(email=attrs["email"]).first()
-        user_by_username = User.objects.filter(username=attrs["username"]).first()
+        user_by_username = User.objects.filter(
+            username=attrs["username"]
+        ).first()
 
         if user_by_email != user_by_username:
             error_msg = {}
             if user_by_email is not None:
-                error_msg["email"] = "Пользователь с таким email уже существует"
+                error_msg["email"] = (
+                    "Пользователь с таким email уже существует"
+                )
             if user_by_username is not None:
-                error_msg["username"] = "Пользователь с таким username уже существует"
+                error_msg["username"] = (
+                    "Пользователь с таким username уже существует"
+                )
             raise serializers.ValidationError(error_msg)
         return attrs
 

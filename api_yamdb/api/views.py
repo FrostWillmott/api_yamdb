@@ -110,7 +110,8 @@ def get_token(request):
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    user = get_object_or_404(User, username=serializer.validated_data["username"])
+    user = get_object_or_404(
+        User, username=serializer.validated_data["username"])
     confirmation_code = serializer.validated_data["confirmation_code"]
 
     if not default_token_generator.check_token(user, confirmation_code):
