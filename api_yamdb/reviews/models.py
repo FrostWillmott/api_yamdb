@@ -4,7 +4,6 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Avg
 
 TEXT_OUTPUT_LIMIT = 20
 MAX_LENGTH_TEXT = 50
@@ -16,7 +15,7 @@ MAX_LENGTH_NAME = 150
 MAX_LENGTH_BIO = 500
 MIN_SCORE = 1
 MAX_SCORE = 10
-VALIDATOR_MESSAGE = "Оценка должна быть от 1 до 10"
+VALIDATOR_ERROR_MESSAGE = "Оценка должна быть от 1 до 10"
 
 
 def me_username_validator(username):
@@ -25,26 +24,27 @@ def me_username_validator(username):
 
 
 class User(AbstractUser):
-    verbose_name = "Пользователь"
-    verbose_name_plural = "Пользователи"
-    ordering = ("username",)
-
     class Role(models.TextChoices):
         USER = "user", "User"
         MODERATOR = "moderator", "Moderator"
         ADMIN = "admin", "Admin"
 
     role = models.CharField(
+        "Роль",
         max_length=MAX_LENGTH_ROLE,
         choices=Role.choices,
         default=Role.USER,
     )
-    bio = models.TextField(blank=True, max_length=MAX_LENGTH_BIO)
-
+    bio = models.TextField(
+        "Биография",
+        blank=True,
+        max_length=MAX_LENGTH_BIO,
+    )
     email = models.EmailField(
         unique=True,
     )
     username = models.CharField(
+        "Имя пользователя",
         max_length=MAX_LENGTH_USERNAME,
         unique=True,
         validators=(
@@ -57,10 +57,12 @@ class User(AbstractUser):
         ),
     )
     first_name = models.CharField(
+        "Имя",
         max_length=MAX_LENGTH_NAME,
         blank=True,
     )
     last_name = models.CharField(
+        "Фамилия",
         max_length=MAX_LENGTH_NAME,
         blank=True,
     )
@@ -70,6 +72,9 @@ class User(AbstractUser):
         verbose_name_plural = "Пользователи"
         ordering = ("-id",)
 
+    def __str__(self):
+        return self.username
+
     @property
     def is_admin(self):
         return self.role == self.Role.ADMIN or self.is_superuser
@@ -78,54 +83,63 @@ class User(AbstractUser):
     def is_moderator(self):
         return self.role == self.Role.MODERATOR
 
-    def __str__(self):
-        return self.username
-
 
 class Genre(models.Model):
     name = models.CharField(
+        "Жанр",
         max_length=LENGTH_INPUT_FIELD,
-        verbose_name="Жанр",
     )
-    slug = models.SlugField(max_length=50, unique=True)
+    slug = models.SlugField(
+        "Слаг",
+        unique=True,
+    )
 
     class Meta:
         verbose_name = "Жанр"
         verbose_name_plural = "Жанры"
-        ordering = ("slug",)
+        ordering = ("-id",)
 
     def __str__(self):
-        return self.name
+        return f"Жанр: {self.name}"
 
 
 class Category(models.Model):
     name = models.CharField(
-        verbose_name="Категория",
+        "Категория",
         max_length=LENGTH_INPUT_FIELD,
     )
-    slug = models.SlugField(max_length=50, unique=True)
+    slug = models.SlugField(
+        "Слаг",
+        unique=True,
+    )
 
     class Meta:
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
-        ordering = ("slug",)
+        ordering = ("name",)
 
     def __str__(self):
-        return self.name
+        return f"Категория: {self.name}"
 
 
 class Title(models.Model):
     name = models.CharField(
-        verbose_name="Название",
+        "Название",
         max_length=LENGTH_INPUT_FIELD,
     )
-    year = models.IntegerField(verbose_name="Год релиза")
+    year = models.SmallIntegerField(
+        "Год релиза",
+    )
     description = models.TextField(
-        verbose_name="Описание",
+        "Описание",
         null=True,
         blank=True,
     )
-    genre = models.ManyToManyField(Genre, verbose_name="Жанр", blank=True)
+    genre = models.ManyToManyField(
+        Genre,
+        verbose_name="Жанр",
+        blank=True,
+    )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -138,19 +152,10 @@ class Title(models.Model):
     class Meta:
         verbose_name = "Произведение"
         verbose_name_plural = "Произведения"
+        ordering = ("name",)
 
     def __str__(self):
-        return self.name[:TEXT_OUTPUT_LIMIT]
-
-    @property
-    def rating(self):
-        """Возвращает среднюю оценку произведения."""
-        reviews = Review.objects.filter(title=self)
-        return reviews.aggregate(Avg("score"))["score__avg"]
-
-    @rating.setter
-    def rating(self, value):
-        self._rating = value
+        return f"Произведение: {self.name}"
 
 
 class Review(models.Model):
@@ -172,11 +177,11 @@ class Review(models.Model):
         validators=(
             MinValueValidator(
                 MIN_SCORE,
-                message=VALIDATOR_MESSAGE,
+                message=VALIDATOR_ERROR_MESSAGE,
             ),
             MaxValueValidator(
                 MAX_SCORE,
-                message=VALIDATOR_MESSAGE,
+                message=VALIDATOR_ERROR_MESSAGE,
             ),
         ),
     )
@@ -185,6 +190,7 @@ class Review(models.Model):
     class Meta:
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
+        ordering = ("-pub_date",)
         constraints = [
             models.UniqueConstraint(
                 fields=["title", "author"],
@@ -216,6 +222,7 @@ class Comment(models.Model):
     class Meta:
         verbose_name = "Комментарий"
         verbose_name_plural = "Комментарии"
+        ordering = ("-pub_date",)
 
     def __str__(self):
-        return self.text[:MAX_LENGTH_TEXT]
+        return f"Комментарий: {self.text}"
