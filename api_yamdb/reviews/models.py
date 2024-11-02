@@ -8,7 +8,7 @@ from django.db.models import Avg
 
 TEXT_OUTPUT_LIMIT = 20
 MAX_LENGTH_TEXT = 50
-
+LENGTH_INPUT_FIELD = 256
 MAX_LENGTH_ROLE = 10
 MAX_LENGTH_CONFIRMATION_CODE = 6
 MAX_LENGTH_USERNAME = 150
@@ -84,7 +84,7 @@ class User(AbstractUser):
 
 class Genre(models.Model):
     name = models.CharField(
-        max_length=256,
+        max_length=LENGTH_INPUT_FIELD,
         verbose_name="Жанр",
     )
     slug = models.SlugField(max_length=50, unique=True)
@@ -99,7 +99,10 @@ class Genre(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField(verbose_name="Категория", max_length=256)
+    name = models.CharField(
+        verbose_name="Категория",
+        max_length=LENGTH_INPUT_FIELD,
+    )
     slug = models.SlugField(max_length=50, unique=True)
 
     class Meta:
@@ -112,7 +115,10 @@ class Category(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharField(verbose_name="Название", max_length=256)
+    name = models.CharField(
+        verbose_name="Название",
+        max_length=LENGTH_INPUT_FIELD,
+    )
     year = models.IntegerField(verbose_name="Год релиза")
     description = models.TextField(
         verbose_name="Описание",
