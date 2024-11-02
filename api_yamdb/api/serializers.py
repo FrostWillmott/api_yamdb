@@ -35,11 +35,8 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ("name", "slug")
 
 
-class TitleReadSerializer(serializers.ModelSerializer):
-    """Сериализатор для чтения данных модели Title."""
-
-    genre = GenreSerializer(many=True)
-    category = CategorySerializer()
+class TitleBaseSerializer(serializers.ModelSerializer):
+    """Базовый сериализатор для модели Title."""
 
     class Meta:
         model = Title
@@ -54,14 +51,29 @@ class TitleReadSerializer(serializers.ModelSerializer):
         )
 
     def to_representation(self, instance):
-        """Override to_representation to handle empty description."""
         representation = super().to_representation(instance)
-        if representation.get("description") is None:
-            representation["description"] = ""
+        representation["description"] = representation.get("description") or ""
+        representation["category"] = CategorySerializer(
+            instance.category,
+        ).data or {"name": "", "slug": ""}
+        representation["genre"] = (
+            GenreSerializer(
+                instance.genre.all(),
+                many=True,
+            ).data
+            or []
+        )
         return representation
 
 
-class TitleWriteSerializer(serializers.ModelSerializer):
+class TitleReadSerializer(TitleBaseSerializer):
+    """Сериализатор для чтения данных модели Title."""
+
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+
+
+class TitleWriteSerializer(TitleBaseSerializer):
     """Сериализатор для записи данных модели Title."""
 
     genre = serializers.SlugRelatedField(
@@ -73,18 +85,6 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         slug_field="slug",
         queryset=Category.objects.all(),
     )
-
-    class Meta:
-        model = Title
-        fields = (
-            "id",
-            "name",
-            "year",
-            "genre",
-            "category",
-            "description",
-            "rating",
-        )
 
     def validate_year(self, value):
         if value > datetime.now().year:
@@ -98,16 +98,10 @@ class TitleWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Необходимо указать жанр")
         return value
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation["genre"] = GenreSerializer(
-            instance.genre.all(), many=True
-        ).data
-        representation["category"] = CategorySerializer(instance.category).data
-        return representation
-
 
 class SignupSerializer(serializers.Serializer):
+    """Сериализатор для регистрации пользователя."""
+
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
         validators=[UnicodeUsernameValidator(), me_username_validator],
@@ -117,21 +111,17 @@ class SignupSerializer(serializers.Serializer):
     def validate(self, attrs):
         user_by_email = User.objects.filter(email=attrs["email"]).first()
         user_by_username = User.objects.filter(
-            username=attrs["username"]
+            username=attrs["username"],
         ).first()
 
-        if user_by_email != user_by_username:
-            error_msg = {}
-            if user_by_email is not None:
-                error_msg["email"] = (
-                    "Пользователь с таким email уже существует"
-                )
-            if user_by_username is not None:
-                error_msg["username"] = (
-                    "Пользователь с таким username уже существует"
-                )
-            raise serializers.ValidationError(error_msg)
-        return attrs
+        if user_by_email == user_by_username:
+            return attrs
+        error_msg = {}
+        if user_by_email is not None:
+            error_msg["email"] = "Пользователь с таким email существует"
+        if user_by_username is not None:
+            error_msg["username"] = "Пользователь с таким username существует"
+        raise serializers.ValidationError(error_msg)
 
 
 class TokenSerializer(serializers.Serializer):
