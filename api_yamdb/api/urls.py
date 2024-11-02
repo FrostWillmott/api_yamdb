@@ -1,4 +1,6 @@
-from rest_framework.decorators import api_view
+
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
 from api.views import (
     CategoryViewSet,
@@ -6,13 +8,10 @@ from api.views import (
     GenreViewSet,
     ReviewViewSet,
     TitleViewSet,
-    UserProfileViewSet,
     UserViewSet,
-    signup,
     get_token,
+    signup,
 )
-from django.urls import include, path
-from rest_framework.routers import DefaultRouter
 
 v1_router = DefaultRouter()
 
@@ -33,12 +32,7 @@ v1_router.register(
 )
 
 urlpatterns = [
-    path('v1/auth/signup/', signup, name='signup'),
-    path('v1/auth/token/', get_token, name='get_token'),
-    path(
-        "v1/users/me/",
-        UserProfileViewSet.as_view({"get": "retrieve", "patch": "update"}),
-        name="user-profile",
-    ),
+    path("v1/auth/signup/", signup, name="signup"),
+    path("v1/auth/token/", get_token, name="get_token"),
     path("v1/", include(v1_router.urls)),
 ]

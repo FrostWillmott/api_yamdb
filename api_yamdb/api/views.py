@@ -4,7 +4,7 @@ from django.db.models import Avg
 from django_filters import rest_framework as django_filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
@@ -28,7 +28,6 @@ from api.serializers import (
     TitleReadSerializer,
     TitleWriteSerializer,
     TokenSerializer,
-    UserProfileSerializer,
     UserSerializer,
 )
 from api_yamdb import settings
@@ -90,7 +89,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
     search_fields = ("name",)
     lookup_field = "slug"
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes((AllowAny,))
 def signup(request):
     serializer = SignupSerializer(data=request.data)
@@ -112,7 +111,7 @@ def signup(request):
     )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def get_token(request):
     serializer = TokenSerializer(data=request.data)
@@ -127,27 +126,6 @@ def get_token(request):
     token = AccessToken.for_user(user)
     return Response({"token": str(token)}, status=status.HTTP_200_OK)
 
-class UserProfileViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_object(self):
-        return self.request.user
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop("partial", True)
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=partial
-        )
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def destroy(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -157,37 +135,23 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_fields = ["username"]
     search_fields = ["username"]
+    http_method_names = ["get", "post", "patch", "delete"]
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data.get("email")
-        if User.objects.filter(email=email).exists():
-            return Response(
-                {"email": "Этот email уже зарегистрирован."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        if request.method == "PUT":
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-        partial = kwargs.pop("partial", False)
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=partial
-        )
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
+    @action(detail=False, methods=["get", "patch"], permission_classes=[permissions.IsAuthenticated])
+    def me(self, request):
+        if request.method == "GET":
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data)
+        if request.method == "PATCH":
+            if request.data.get("role"):
+                return Response(
+                    {"role": "Вы не можете менять роль пользователя."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            serializer = self.get_serializer(request.user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(serializer.data)
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
@@ -207,7 +171,7 @@ class ReviewViewSet(ModelViewSet):
         user = self.request.user
         if user.is_anonymous:
             raise ValidationError(
-                "Authentication credentials were not provided."
+                "Authentication credentials were not provided.",
             )
         if Review.objects.filter(title=title, author=user).exists():
             raise ValidationError("You have already reviewed this title.")
@@ -226,7 +190,7 @@ class CommentViewSet(ModelViewSet):
     def _get_review(self):
         title = self._get_title()
         return get_object_or_404(
-            Review, id=self.kwargs["review_id"], title=title
+            Review, id=self.kwargs["review_id"], title=title,
         )
 
     def get_queryset(self):

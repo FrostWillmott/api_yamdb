@@ -33,7 +33,7 @@ class User(AbstractUser):
         ADMIN = "admin", "Admin"
 
     role = models.CharField(
-        max_length=MAX_LENGTH_ROLE, choices=Role.choices, default=Role.USER
+        max_length=MAX_LENGTH_ROLE, choices=Role.choices, default=Role.USER,
     )
     bio = models.TextField(blank=True, max_length=MAX_LENGTH_BIO)
 
@@ -47,9 +47,9 @@ class User(AbstractUser):
             UnicodeUsernameValidator(
                 message="Введите допустимое имя пользователя."
                     " Это значение может содержать только буквы,"
-                    " цифры и символы @/./+/-/_"
+                    " цифры и символы @/./+/-/_",
         ),
-            me_username_validator
+            me_username_validator,
         ),
     )
     first_name = models.CharField(
@@ -104,7 +104,7 @@ class Title(models.Model):
     name = models.CharField(verbose_name="Название", max_length=256)
     year = models.IntegerField(verbose_name="Год релиза")
     description = models.TextField(
-        verbose_name="Описание", null=True, blank=True
+        verbose_name="Описание", null=True, blank=True,
     )
     genre = models.ManyToManyField(Genre, verbose_name="Жанр", blank=True)
     category = models.ForeignKey(
@@ -161,7 +161,7 @@ class Review(models.Model):
             models.UniqueConstraint(
                 fields=["title", "author"],
                 name="unique_review",
-            )
+            ),
         ]
 
     def __str__(self):
