@@ -31,6 +31,7 @@ from api.serializers import (
     TitleWriteSerializer,
     TokenSerializer,
     UserSerializer,
+    UserSerializerAdmin,
 )
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
@@ -110,7 +111,8 @@ def get_token(request):
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    user = get_object_or_404(User, username=serializer.validated_data["username"])
+    user = get_object_or_404(
+        User, username=serializer.validated_data["username"])
     confirmation_code = serializer.validated_data["confirmation_code"]
 
     if not default_token_generator.check_token(user, confirmation_code):
@@ -125,7 +127,6 @@ def get_token(request):
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
     permission_classes = (IsAdmin,)
     lookup_field = "username"
     filter_backends = [DjangoFilterBackend, SearchFilter]
@@ -142,18 +143,16 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == "GET":
             serializer = self.get_serializer(request.user)
             return Response(serializer.data)
-        if request.method == "PATCH":
-            if request.data.get("role"):
-                return Response(
-                    {"role": "Вы не можете менять роль пользователя."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            serializer = self.get_serializer(
-                request.user, data=request.data, partial=True
-            )
-            serializer.is_valid(raise_exception=True)
-            self.perform_update(serializer)
-            return Response(serializer.data)
+        serializer = self.get_serializer(
+            request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def get_serializer_class(self):
+        if self.request.user.is_admin:
+            return UserSerializerAdmin
+        return UserSerializer
 
 
 class ReviewViewSet(ModelViewSet):

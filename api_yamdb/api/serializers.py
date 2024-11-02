@@ -73,15 +73,13 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 class SignupSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
-        validators=[UnicodeUsernameValidator(), me_username_validator]
+        validators=[UnicodeUsernameValidator(), me_username_validator],
     )
     email = serializers.EmailField(max_length=254)
 
     def validate(self, attrs):
         user_by_email = User.objects.filter(email=attrs["email"]).first()
-        user_by_username = User.objects.filter(
-            username=attrs["username"]
-        ).first()
+        user_by_username = User.objects.filter(username=attrs["username"]).first()
 
         if user_by_email != user_by_username:
             error_msg = {}
@@ -105,19 +103,26 @@ class TokenSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField()
 
 
-class UserSerializer(serializers.ModelSerializer):
-    """Сериализатор для моделей User."""
+class UserSerializerAdmin(serializers.ModelSerializer):
+    """Сериализатор для моделей User с правом менять роли."""
 
     class Meta:
         model = User
-        fields = [
+        fields = (
             "username",
             "email",
             "first_name",
             "last_name",
             "bio",
             "role",
-        ]
+        )
+
+
+class UserSerializer(UserSerializerAdmin):
+    """Сериализатор для моделей User без прав менять роли."""
+
+    class Meta(UserSerializerAdmin.Meta):
+        read_only_fields = ("role",)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
