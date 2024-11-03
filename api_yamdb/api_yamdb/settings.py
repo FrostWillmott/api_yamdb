@@ -114,10 +114,8 @@ SIMPLE_JWT = {
     "TOKEN_TYPE_CLAIM": "token_type",
 }
 
-EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 EMAIL_FILE_PATH = BASE_DIR / "sent_emails"
 
 DEFAULT_FROM_EMAIL = "no-reply@example.com"
-
-FORBIDDEN_USERNAMES = ("me",)

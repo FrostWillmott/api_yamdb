@@ -65,6 +65,8 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(),
     )
 
+    rating = serializers.IntegerField(read_only=True, default=None)
+
     class Meta:
         model = Title
         fields = (
@@ -74,6 +76,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
             "genre",
             "category",
             "description",
+            "rating",
         )
 
     def validate_genre(self, value):
