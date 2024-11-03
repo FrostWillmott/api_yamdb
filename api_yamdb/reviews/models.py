@@ -22,6 +22,7 @@ def me_username_validator(username):
     if username == "me":
         raise ValidationError("Username 'me' is not allowed.")
 
+
 def validate_year(value):
     current_year = timezone.now().year
     if value > current_year:
@@ -168,7 +169,8 @@ class Title(models.Model):
         verbose_name_plural = "Произведения"
 
     def __str__(self):
-        return f"Произведение(id={self.id}, name={self.name[:TEXT_OUTPUT_LIMIT]})"
+        return (f"Произведение(id={self.id},"
+                f" name={self.name[:TEXT_OUTPUT_LIMIT]})")
 
 
 class Review(models.Model):
