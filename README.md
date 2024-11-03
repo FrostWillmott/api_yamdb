@@ -7,8 +7,8 @@
 - Python
 - Django
 - Django REST Framework
-- PostgreSQL
-
+- SQLite (для разработки и тестирования)
+- pytest (для тестирования)
 ## Раздел с авторами
 
 - Автор 1: Иван Ткаченко [https://github.com/FrostWillmott](https://github.com/FrostWillmott)
