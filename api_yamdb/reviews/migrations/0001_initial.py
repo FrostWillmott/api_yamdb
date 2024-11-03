@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
                 ('role', models.CharField(choices=[('user', 'User'), ('moderator', 'Moderator'), ('admin', 'Admin')], default='user', max_length=10, verbose_name='Роль')),
                 ('bio', models.TextField(blank=True, max_length=500, verbose_name='Биография')),
                 ('email', models.EmailField(max_length=254, unique=True)),
-                ('username', models.CharField(max_length=150, unique=True, validators=[django.contrib.auth.validators.UnicodeUsernameValidator(message='Введите допустимое имя пользователя.Это значение может содержать только буквы, цифры и символы @/./+/-/_'), reviews.models.me_username_validator], verbose_name='Имя пользователя')),
+                ('username', models.CharField(max_length=150, unique=True, validators=[django.contrib.auth.validators.UnicodeUsernameValidator(message='Введите допустимое имя пользователя.Это значение может содержать только буквы, цифры и символы @/./+/-/_'), reviews.validators.forbidden_username_validator], verbose_name='Имя пользователя')),
                 ('first_name', models.CharField(blank=True, max_length=150, verbose_name='Имя')),
                 ('last_name', models.CharField(blank=True, max_length=150, verbose_name='Фамилия')),
                 ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.Group', verbose_name='groups')),

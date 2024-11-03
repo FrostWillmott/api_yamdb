@@ -12,8 +12,8 @@ from reviews.models import (
     Review,
     Title,
     User,
-    me_username_validator,
 )
+from reviews.validators import forbidden_username_validator
 
 User = get_user_model()
 
@@ -34,10 +34,12 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ("name", "slug")
 
 
-class TitleBaseSerializer(serializers.ModelSerializer):
-    """Базовый сериализатор для модели Title."""
+class TitleReadSerializer(serializers.ModelSerializer):
+    """Сериализатор для чтения данных модели Title."""
 
-    rating = serializers.FloatField(read_only=True)
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+    rating = serializers.IntegerField(read_only=True, default=None)
 
     class Meta:
         model = Title
@@ -51,30 +53,8 @@ class TitleBaseSerializer(serializers.ModelSerializer):
             "rating",
         )
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation["description"] = representation.get("description") or ""
-        representation["category"] = CategorySerializer(
-            instance.category,
-        ).data or {"name": "", "slug": ""}
-        representation["genre"] = (
-            GenreSerializer(
-                instance.genre.all(),
-                many=True,
-            ).data
-            or []
-        )
-        return representation
 
-
-class TitleReadSerializer(TitleBaseSerializer):
-    """Сериализатор для чтения данных модели Title."""
-
-    genre = GenreSerializer(many=True)
-    category = CategorySerializer()
-
-
-class TitleWriteSerializer(TitleBaseSerializer):
+class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для записи данных модели Title."""
 
     genre = serializers.SlugRelatedField(
@@ -87,25 +67,36 @@ class TitleWriteSerializer(TitleBaseSerializer):
         queryset=Category.objects.all(),
     )
 
-    def validate_year(self, value):
-        if value > datetime.now().year:
-            raise serializers.ValidationError(
-                "Год выпуска не может быть больше текущего",
-            )
-        return value
+    rating = serializers.IntegerField(read_only=True, default=None)
+
+    class Meta:
+        model = Title
+        fields = (
+            "id",
+            "name",
+            "year",
+            "genre",
+            "category",
+            "description",
+            "rating",
+        )
+
 
     def validate_genre(self, value):
         if not value:
             raise serializers.ValidationError("Необходимо указать жанр")
         return value
 
+    def to_representation(self, instance):
+            representation = TitleReadSerializer(instance).data
+            return representation
 
 class SignupSerializer(serializers.Serializer):
     """Сериализатор для регистрации пользователя."""
 
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
-        validators=[UnicodeUsernameValidator(), me_username_validator],
+        validators=(UnicodeUsernameValidator(), forbidden_username_validator),
     )
     email = serializers.EmailField(max_length=254)
 
@@ -130,7 +121,7 @@ class TokenSerializer(serializers.Serializer):
 
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
-        validators=[UnicodeUsernameValidator(), me_username_validator],
+        validators=(UnicodeUsernameValidator(), forbidden_username_validator),
     )
     confirmation_code = serializers.CharField()
 
@@ -164,10 +155,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field="username",
         read_only=True,
     )
-    pub_date = serializers.DateTimeField(
-        read_only=True,
-        format="%Y-%m-%dT%H:%M:%SZ",
-    )
+    # pub_date = serializers.DateTimeField(
+    #     read_only=True,
+    #     format="%Y-%m-%dT%H:%M:%SZ",
+    # )
 
     class Meta:
         model = Review
@@ -189,10 +180,6 @@ class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         slug_field="username",
         read_only=True,
-    )
-    pub_date = serializers.DateTimeField(
-        read_only=True,
-        format="%Y-%m-%dT%H:%M:%SZ",
     )
 
     class Meta:
