@@ -12,8 +12,8 @@ from reviews.models import (
     Review,
     Title,
     User,
-    me_username_validator,
 )
+from reviews.validators import forbidden_username_validator
 
 User = get_user_model()
 
@@ -105,7 +105,7 @@ class SignupSerializer(serializers.Serializer):
 
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
-        validators=[UnicodeUsernameValidator(), me_username_validator],
+        validators=(UnicodeUsernameValidator(), forbidden_username_validator),
     )
     email = serializers.EmailField(max_length=254)
 
@@ -130,7 +130,7 @@ class TokenSerializer(serializers.Serializer):
 
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
-        validators=[UnicodeUsernameValidator(), me_username_validator],
+        validators=(UnicodeUsernameValidator(), forbidden_username_validator),
     )
     confirmation_code = serializers.CharField()
 

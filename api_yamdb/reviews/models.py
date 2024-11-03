@@ -3,11 +3,18 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from reviews.constants import MAX_LENGTH_ROLE, MAX_LENGTH_BIO, \
-    MAX_LENGTH_USERNAME, MAX_LENGTH_NAME, LENGTH_INPUT_FIELD, \
-    TEXT_OUTPUT_LIMIT, MIN_SCORE, VALIDATOR_ERROR_MESSAGE, MAX_SCORE, \
-    MAX_LENGTH_TEXT
-from reviews.validators import me_username_validator, validate_year
+from reviews.constants import (
+    LENGTH_INPUT_FIELD,
+    MAX_LENGTH_BIO,
+    MAX_LENGTH_NAME,
+    MAX_LENGTH_ROLE,
+    MAX_LENGTH_TEXT,
+    MAX_LENGTH_USERNAME,
+    MAX_SCORE,
+    MIN_SCORE,
+    VALIDATOR_ERROR_MESSAGE,
+)
+from reviews.validators import forbidden_username_validator, validate_year
 
 
 class User(AbstractUser):
@@ -35,12 +42,8 @@ class User(AbstractUser):
         max_length=MAX_LENGTH_USERNAME,
         unique=True,
         validators=(
-            UnicodeUsernameValidator(
-                message="Введите допустимое имя пользователя."
-                "Это значение может содержать только буквы, "
-                "цифры и символы @/./+/-/_",
-            ),
-            me_username_validator,
+            UnicodeUsernameValidator(),
+            forbidden_username_validator,
         ),
     )
     first_name = models.CharField(
@@ -57,7 +60,7 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
-        ordering = ("-id",)
+        ordering = ("username",)
 
     def __str__(self):
         return self.username
@@ -84,7 +87,7 @@ class Genre(models.Model):
     class Meta:
         verbose_name = "Жанр"
         verbose_name_plural = "Жанры"
-        ordering = ("-id",)
+        ordering = ("name",)
 
     def __str__(self):
         return f"Жанр: {self.name}"
@@ -144,14 +147,6 @@ class Title(models.Model):
 
     def __str__(self):
         return f"Произведение: {self.name}"
-
-    class Meta:
-        verbose_name = "Произведение"
-        verbose_name_plural = "Произведения"
-
-    def __str__(self):
-        return (f"Произведение(id={self.id},"
-                f" name={self.name[:TEXT_OUTPUT_LIMIT]})")
 
 
 class Review(models.Model):

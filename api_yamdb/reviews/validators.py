@@ -1,10 +1,12 @@
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
+from reviews.constants import FORBIDDEN_USERNAMES
 
-def me_username_validator(username):
-    if username == "me":
-        raise ValidationError("Username 'me' is not allowed.")
+
+def forbidden_username_validator(username):
+    if username in FORBIDDEN_USERNAMES:
+        raise ValidationError(f"Username '{username}' is not allowed.")
 
 
 def validate_year(value):
