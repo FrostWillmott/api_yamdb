@@ -169,8 +169,8 @@ class Title(models.Model):
         verbose_name = "Произведение"
         verbose_name_plural = "Произведения"
 
-        def __str__(self):
-            return self.name[:TEXT_OUTPUT_LIMIT]
+    def __str__(self):
+        return f"Произведение(id={self.id}, name={self.name[:TEXT_OUTPUT_LIMIT]})"
 
 
 class Review(models.Model):
@@ -214,7 +214,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return self.text[:MAX_LENGTH_TEXT]
+        return f"Комментарий(id={self.id}, text={self.text[:MAX_LENGTH_TEXT]})"
 
 
 class Comment(models.Model):
@@ -233,13 +233,10 @@ class Comment(models.Model):
     )
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
 
-    def __str__(self):
-        return self.text[:MAX_LENGTH_TEXT]
-
     class Meta:
         verbose_name = "Комментарий"
         verbose_name_plural = "Комментарии"
         ordering = ("-pub_date",)
 
     def __str__(self):
-        return f"Комментарий: {self.text}"
+        return f"Комментарий(id={self.id}, text={self.text[:MAX_LENGTH_TEXT]})"
