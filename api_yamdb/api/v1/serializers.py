@@ -52,6 +52,16 @@ class TitleReadSerializer(serializers.ModelSerializer):
             "rating",
         )
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["description"] = representation["description"] or ""
+        representation["genre"] = representation["genre"] or []
+        representation["category"] = representation["category"] or {
+            "name": "",
+            "slug": "",
+        }
+        return representation
+
 
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для записи данных модели Title."""
