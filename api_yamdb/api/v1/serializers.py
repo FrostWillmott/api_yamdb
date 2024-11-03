@@ -37,7 +37,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class TitleBaseSerializer(serializers.ModelSerializer):
     """Базовый сериализатор для модели Title."""
 
-    rating = serializers.FloatField(read_only=True)
+    rating = serializers.IntegerField(read_only=True, default=None)
 
     class Meta:
         model = Title
@@ -87,12 +87,12 @@ class TitleWriteSerializer(TitleBaseSerializer):
         queryset=Category.objects.all(),
     )
 
-    def validate_year(self, value):
-        if value > datetime.now().year:
-            raise serializers.ValidationError(
-                "Год выпуска не может быть больше текущего",
-            )
-        return value
+    # def validate_year(self, value):
+    #     if value > datetime.now().year:
+    #         raise serializers.ValidationError(
+    #             "Год выпуска не может быть больше текущего",
+    #         )
+    #     return value
 
     def validate_genre(self, value):
         if not value:
@@ -164,10 +164,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field="username",
         read_only=True,
     )
-    pub_date = serializers.DateTimeField(
-        read_only=True,
-        format="%Y-%m-%dT%H:%M:%SZ",
-    )
+    # pub_date = serializers.DateTimeField(
+    #     read_only=True,
+    #     format="%Y-%m-%dT%H:%M:%SZ",
+    # )
 
     class Meta:
         model = Review
@@ -190,10 +190,10 @@ class CommentSerializer(serializers.ModelSerializer):
         slug_field="username",
         read_only=True,
     )
-    pub_date = serializers.DateTimeField(
-        read_only=True,
-        format="%Y-%m-%dT%H:%M:%SZ",
-    )
+    # pub_date = serializers.DateTimeField(
+    #     read_only=True,
+    #     format="%Y-%m-%dT%H:%M:%SZ",
+    # )
 
     class Meta:
         model = Comment
