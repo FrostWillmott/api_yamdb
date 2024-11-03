@@ -79,15 +79,15 @@ class TitleWriteSerializer(serializers.ModelSerializer):
             "rating",
         )
 
-
     def validate_genre(self, value):
         if not value:
             raise serializers.ValidationError("Необходимо указать жанр")
         return value
 
     def to_representation(self, instance):
-            representation = TitleReadSerializer(instance).data
-            return representation
+        representation = TitleReadSerializer(instance).data
+        return representation
+
 
 class SignupSerializer(serializers.Serializer):
     """Сериализатор для регистрации пользователя."""
