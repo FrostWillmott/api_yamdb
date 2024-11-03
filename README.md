@@ -100,7 +100,7 @@ pytest
 Для импорта данных из CSV файлов используйте следующую команду:
 
 ```bash
-python manage.py load_data_from_csv /path/to/file.csv
+python manage.py load_data ../api_yamdb/static/data/
 ```
 
 Эта команда загрузит данные из CSV файлов в базу данных. Убедитесь, что файлы

@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
@@ -155,10 +153,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field="username",
         read_only=True,
     )
-    # pub_date = serializers.DateTimeField(
-    #     read_only=True,
-    #     format="%Y-%m-%dT%H:%M:%SZ",
-    # )
 
     class Meta:
         model = Review
