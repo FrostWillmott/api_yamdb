@@ -2,31 +2,12 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils import timezone
-from rest_framework.exceptions import ValidationError
 
-TEXT_OUTPUT_LIMIT = 20
-MAX_LENGTH_TEXT = 50
-LENGTH_INPUT_FIELD = 256
-MAX_LENGTH_ROLE = 10
-MAX_LENGTH_CONFIRMATION_CODE = 6
-MAX_LENGTH_USERNAME = 150
-MAX_LENGTH_NAME = 150
-MAX_LENGTH_BIO = 500
-MIN_SCORE = 1
-MAX_SCORE = 10
-VALIDATOR_ERROR_MESSAGE = "Оценка должна быть от 1 до 10"
-
-
-def me_username_validator(username):
-    if username == "me":
-        raise ValidationError("Username 'me' is not allowed.")
-
-
-def validate_year(value):
-    current_year = timezone.now().year
-    if value > current_year:
-        raise ValidationError(f"Год не может быть больше чем {current_year}.")
+from reviews.constants import MAX_LENGTH_ROLE, MAX_LENGTH_BIO, \
+    MAX_LENGTH_USERNAME, MAX_LENGTH_NAME, LENGTH_INPUT_FIELD, \
+    TEXT_OUTPUT_LIMIT, MIN_SCORE, VALIDATOR_ERROR_MESSAGE, MAX_SCORE, \
+    MAX_LENGTH_TEXT
+from reviews.validators import me_username_validator, validate_year
 
 
 class User(AbstractUser):
