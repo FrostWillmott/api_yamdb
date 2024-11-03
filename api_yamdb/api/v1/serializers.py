@@ -1,9 +1,8 @@
 from datetime import datetime
 
-from rest_framework import serializers
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from rest_framework import serializers
 
 from reviews.models import (
     MAX_LENGTH_USERNAME,
@@ -91,7 +90,7 @@ class TitleWriteSerializer(TitleBaseSerializer):
     def validate_year(self, value):
         if value > datetime.now().year:
             raise serializers.ValidationError(
-                "Год выпуска не может быть больше текущего"
+                "Год выпуска не может быть больше текущего",
             )
         return value
 

@@ -1,3 +1,7 @@
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
@@ -9,13 +13,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
-from django.conf import settings
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.db.models import Avg
-
 from reviews.models import Category, Genre, Review, Title, User
-
 from .filters import TitleFilter
 from .permissions import (
     IsAdmin,
@@ -166,18 +164,19 @@ class CommentViewSet(ModelViewSet):
     permission_classes = (IsAdminOrModeratorOrAuthorOrReadOnly,)
     http_method_names = ["get", "post", "patch", "delete"]
 
-    def _get_review(self):
-        return get_object_or_404(
+    def get_queryset(self):
+        review = get_object_or_404(
             Review,
             id=self.kwargs["review_id"],
             title__id=self.kwargs["title_id"],
         )
-
-    def get_queryset(self):
-        review = self._get_review()
         return review.comments.all()
 
     def perform_create(self, serializer):
-        review = self._get_review()
+        review = get_object_or_404(
+            Review,
+            id=self.kwargs["review_id"],
+            title__id=self.kwargs["title_id"],
+        )
         user = self.request.user
         serializer.save(author=user, review=review)

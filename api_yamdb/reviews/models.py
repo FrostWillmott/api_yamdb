@@ -1,9 +1,9 @@
-from rest_framework.exceptions import ValidationError
-
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 TEXT_OUTPUT_LIMIT = 20
 MAX_LENGTH_TEXT = 50
@@ -21,6 +21,11 @@ VALIDATOR_ERROR_MESSAGE = "Оценка должна быть от 1 до 10"
 def me_username_validator(username):
     if username == "me":
         raise ValidationError("Username 'me' is not allowed.")
+
+def validate_year(value):
+    current_year = timezone.now().year
+    if value > current_year:
+        raise ValidationError(f"Год не может быть больше чем {current_year}.")
 
 
 class User(AbstractUser):
@@ -129,6 +134,7 @@ class Title(models.Model):
     )
     year = models.SmallIntegerField(
         "Год релиза",
+        validators=[validate_year],
     )
     description = models.TextField(
         "Описание",
@@ -161,8 +167,8 @@ class Title(models.Model):
         verbose_name = "Произведение"
         verbose_name_plural = "Произведения"
 
-        def __str__(self):
-            return self.name[:TEXT_OUTPUT_LIMIT]
+    def __str__(self):
+        return f"Произведение(id={self.id}, name={self.name[:TEXT_OUTPUT_LIMIT]})"
 
 
 class Review(models.Model):
@@ -206,7 +212,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return self.text[:MAX_LENGTH_TEXT]
+        return f"Обзор(id={self.id}, text={self.text[:MAX_LENGTH_TEXT]})"
 
 
 class Comment(models.Model):
@@ -225,13 +231,10 @@ class Comment(models.Model):
     )
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
 
-    def __str__(self):
-        return self.text[:MAX_LENGTH_TEXT]
-
     class Meta:
         verbose_name = "Комментарий"
         verbose_name_plural = "Комментарии"
         ordering = ("-pub_date",)
 
     def __str__(self):
-        return f"Комментарий: {self.text}"
+        return f"Комментарий(id={self.id}, text={self.text[:MAX_LENGTH_TEXT]})"
