@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from reviews.models import User, Genre, Category, Title, Review, Comment
 
 class Command(BaseCommand):
-    help = 'Load data from CSV files into the database'
+    help = 'Загрузка данных из CSV файлов в базу данных'
 
     def handle(self, *args, **kwargs):
         self.load_users()
