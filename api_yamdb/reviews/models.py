@@ -1,11 +1,9 @@
-from django.utils import timezone
-
-from rest_framework.exceptions import ValidationError
-
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 TEXT_OUTPUT_LIMIT = 20
 MAX_LENGTH_TEXT = 50
