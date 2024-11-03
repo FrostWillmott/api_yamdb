@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from reviews.constants import FORBIDDEN_USERNAMES
+from api_yamdb.settings import FORBIDDEN_USERNAMES
 
 
 def forbidden_username_validator(username):
