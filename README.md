@@ -95,19 +95,9 @@ python manage.py runserver
 pytest
 ```
 
-Как загрузить данные из csv файла в базу данных:
+### Как загрузить данные из csv файла в базу данных:
 
-Для импорта данных из CSV файлов используйте следующую команду:
-
-```bash
-python manage.py load_data ../api_yamdb/static/data/
-```
-
-Эта команда загрузит данные из CSV файлов в базу данных. Убедитесь, что файлы
-users.csv, genres.csv, categories.csv, titles.csv, reviews.csv и comments.csv
-находятся в указанной директории.
-
-Выполните команду в sql консоли:
+Для импорта данных из CSV файлов выполните команду в sql консоли:
 
 ```bash
 LOAD DATA INFILE '/home/export_file.csv' INTO TABLE table_name FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '/n' IGNORE 1 ROWS;
