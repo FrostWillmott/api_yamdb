@@ -34,8 +34,38 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ("name", "slug")
 
 
-class TitleBaseSerializer(serializers.ModelSerializer):
-    """Базовый сериализатор для модели Title."""
+class TitleReadSerializer(serializers.ModelSerializer):
+    """Сериализатор для чтения данных модели Title."""
+
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+    rating = serializers.IntegerField(read_only=True, default=None)
+
+    class Meta:
+        model = Title
+        fields = (
+            "id",
+            "name",
+            "year",
+            "genre",
+            "category",
+            "description",
+            "rating",
+        )
+
+
+class TitleWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для записи данных модели Title."""
+
+    genre = serializers.SlugRelatedField(
+        slug_field="slug",
+        many=True,
+        queryset=Genre.objects.all(),
+    )
+    category = serializers.SlugRelatedField(
+        slug_field="slug",
+        queryset=Category.objects.all(),
+    )
 
     rating = serializers.IntegerField(read_only=True, default=None)
 
@@ -51,54 +81,15 @@ class TitleBaseSerializer(serializers.ModelSerializer):
             "rating",
         )
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation["description"] = representation.get("description") or ""
-        representation["category"] = CategorySerializer(
-            instance.category,
-        ).data or {"name": "", "slug": ""}
-        representation["genre"] = (
-            GenreSerializer(
-                instance.genre.all(),
-                many=True,
-            ).data
-            or []
-        )
-        return representation
-
-
-class TitleReadSerializer(TitleBaseSerializer):
-    """Сериализатор для чтения данных модели Title."""
-
-    genre = GenreSerializer(many=True)
-    category = CategorySerializer()
-
-
-class TitleWriteSerializer(TitleBaseSerializer):
-    """Сериализатор для записи данных модели Title."""
-
-    genre = serializers.SlugRelatedField(
-        slug_field="slug",
-        many=True,
-        queryset=Genre.objects.all(),
-    )
-    category = serializers.SlugRelatedField(
-        slug_field="slug",
-        queryset=Category.objects.all(),
-    )
-
-    # def validate_year(self, value):
-    #     if value > datetime.now().year:
-    #         raise serializers.ValidationError(
-    #             "Год выпуска не может быть больше текущего",
-    #         )
-    #     return value
 
     def validate_genre(self, value):
         if not value:
             raise serializers.ValidationError("Необходимо указать жанр")
         return value
 
+    def to_representation(self, instance):
+            representation = TitleReadSerializer(instance).data
+            return representation
 
 class SignupSerializer(serializers.Serializer):
     """Сериализатор для регистрации пользователя."""
@@ -190,10 +181,6 @@ class CommentSerializer(serializers.ModelSerializer):
         slug_field="username",
         read_only=True,
     )
-    # pub_date = serializers.DateTimeField(
-    #     read_only=True,
-    #     format="%Y-%m-%dT%H:%M:%SZ",
-    # )
 
     class Meta:
         model = Comment
