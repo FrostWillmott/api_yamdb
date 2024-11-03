@@ -214,7 +214,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return f"Комментарий(id={self.id}, text={self.text[:MAX_LENGTH_TEXT]})"
+        return f"Обзор(id={self.id}, text={self.text[:MAX_LENGTH_TEXT]})"
 
 
 class Comment(models.Model):
