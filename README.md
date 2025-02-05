@@ -16,7 +16,7 @@
 ## Раздел с авторами
 
 - Автор 1: Иван
-  Ткаченко [https://github.com/FrostWillmott](https://github.com/FrostWillmott)
+  Ткаченко [https://github.com/FrostWillmott](https://github.com/FrostWillmott)(Тимлид)
 - Автор 2: Николай
   Волосянков [https://github.com/intrening](https://github.com/intrening)
 - Автор 3: Олег
